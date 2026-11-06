@@ -728,7 +728,7 @@
   .dc-full .dc-zoom button { height: 30px; }
   .dc-full .dc-base { display: none; }
   .dc-full .dc-cam { padding-bottom: 8px; }
-  .is-camera .app-main { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .is-camera .app-main { padding-bottom: calc(var(--nav-h, 57px) + 19px); }
   .dc-roll-pill { padding: 6px 9px; font-size: 8px; }
 }
 

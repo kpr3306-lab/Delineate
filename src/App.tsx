@@ -141,6 +141,27 @@ export default function App() {
   const photosRef = useRef<PhotoRecord[]>([]);
   const toastTimer = useRef<number | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  // Measure the real visible height and the fixed bottom tab bar (its height varies with gesture-bar insets,
+  // font scaling and browser chrome) so every page ends exactly above the bar instead of under it.
+  useEffect(() => {
+    const sync = () => {
+      const nav = navRef.current;
+      const style = document.documentElement.style;
+      style.setProperty('--vh', `${window.innerHeight}px`);
+      style.setProperty('--nav-h', nav && getComputedStyle(nav).position === 'fixed' ? `${nav.offsetHeight}px` : '0px');
+    };
+    sync();
+    const observer = new ResizeObserver(sync);
+    // border-box: the safe-area inset is padding, which a content-box observer would miss
+    if (navRef.current) observer.observe(navRef.current, { box: 'border-box' });
+    window.addEventListener('resize', sync);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', sync);
+    };
+  }, []);
 
   const developed = useMemo(() => photos.filter((p) => p.developed !== false), [photos]);
   const roll = useMemo(() => photos.filter((p) => p.developed === false).sort((a, b) => a.createdAt - b.createdAt), [photos]);
@@ -293,7 +314,7 @@ export default function App() {
           </span>
         </button>
 
-        <nav className="main-nav" aria-label="Sections">
+        <nav ref={navRef} className="main-nav" aria-label="Sections">
           {TABS.map((item) => {
             const Icon = item.icon;
             const badge = item.id === 'develop' ? roll.length : item.id === 'archive' ? developed.length : 0;

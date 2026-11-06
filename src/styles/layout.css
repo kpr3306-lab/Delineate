@@ -1,6 +1,6 @@
 /* Fixed app screen ------------------------------------------------------------
    The page itself never scrolls; side panels and lists scroll inside it. */
-.app-shell { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+.app-shell { display: flex; flex-direction: column; height: 100vh; height: 100dvh; height: var(--vh, 100dvh); overflow: hidden; }
 .site-header { flex: none; }
 .app-main {
   display: flex;
@@ -86,7 +86,8 @@ html[data-rot] { --app-h: 100dvw; }
    Inner layouts never scroll on their own, so there is never a scroll inside a scroll. */
 @media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .site-header { padding-top: 9px; padding-bottom: 9px; }
-  .app-main { padding: 10px 12px calc(74px + env(safe-area-inset-bottom)); }
+  /* --nav-h is the measured tab bar (0 when it is not floating), set in App.tsx */
+  .app-main { padding: 10px 12px calc(var(--nav-h, 74px) + 12px); }
   .pr-layout,
   .cl-layout,
   .art-layout,
