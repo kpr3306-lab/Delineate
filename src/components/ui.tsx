@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { haptic, playDetent } from '../lib/audio';
 import { X } from 'lucide-react';
 import type { Look } from '../types';
@@ -194,7 +195,10 @@ export function Modal({ title, eyebrow, onClose, children, wide, className }: Mo
     };
   }, [onClose]);
 
-  return (
+  // Portal to the app shell: pages animate with a transform, which would pin a fixed overlay to the
+  // scrolled page content (off-screen) instead of the screen. The shell sits inside #root, so it still
+  // turns with the portrait-lock rotation.
+  return createPortal(
     <div
       className="modal-overlay"
       ref={overlayRef}
@@ -219,7 +223,8 @@ export function Modal({ title, eyebrow, onClose, children, wide, className }: Mo
         </header>
         {children}
       </div>
-    </div>
+    </div>,
+    document.querySelector('.app-shell') ?? document.body,
   );
 }
 

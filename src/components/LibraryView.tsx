@@ -14,7 +14,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import type { PhotoKind, PhotoRecord } from '../types';
 import { downloadBlob, fileSlug, formatDate, pad } from '../lib/utils';
 import { EmptyState, Modal, Spinner, useObjectUrl } from './ui';
@@ -92,9 +92,16 @@ function ArchiveCard({
   const download = () =>
     downloadBlob(record.blob, `${fileSlug(record.name)}.${extensionFor(record)}`);
 
+  // Touch screens have no hover: the first tap on the photo reveals the actions, a second tap hides them.
+  const [open, setOpen] = useState(false);
+  const toggleActions = (event: MouseEvent<HTMLDivElement>) => {
+    if (!window.matchMedia('(hover: none)').matches || (event.target as HTMLElement).closest('button')) return;
+    setOpen((o) => !o);
+  };
+
   return (
-    <article className="archive-card" style={{ animationDelay: `${Math.min(index, 9) * 45}ms` }}>
-      <div className="archive-image-wrap">
+    <article className={`archive-card ${open ? 'is-open' : ''}`} style={{ animationDelay: `${Math.min(index, 9) * 45}ms` }}>
+      <div className="archive-image-wrap" onClick={toggleActions}>
         {url && <img src={url} alt={record.name} loading="lazy" className={negative ? 'is-negative' : ''} />}
         <button
           type="button"

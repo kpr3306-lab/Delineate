@@ -110,6 +110,9 @@ html[data-rot] { --app-h: 100dvw; }
   }
   .pr-canvas-wrap { flex: none; height: calc(var(--app-h) * 0.32); }
   .cl-stage { height: calc(var(--app-h) * 0.36); }
+  /* frame / spacing options right under the collage, the layout picker after them */
+  .cl-layout > .cl-panel-cell { order: 0; scroll-margin-top: calc(var(--app-h) * 0.36 + 12px); }
+  .cl-layout > .cl-panel:not(.cl-panel-cell) { order: 1; }
   .art-stage { height: calc(var(--app-h) * 0.38); }
   /* journal: the page, then its tool strip pinned right under it */
   .jr-desk { height: calc(var(--app-h) * 0.44); }
@@ -506,3 +509,11 @@ html[data-rot] .dc-screen { max-height: 58dvw; container-type: size; }
 html[data-rot] .dc-video { inset: auto; top: 50%; left: 50%; width: 100cqh; height: 100cqw; translate: -50% -50%; }
 html[data-rot='90'] .dc-video { rotate: 90deg; }
 html[data-rot='270'] .dc-video { rotate: -90deg; }
+
+/* Archive on touch screens: hidden actions must not catch the first tap. Tap the photo to reveal them. */
+@media (hover: none) {
+  .archive-card:not(.is-open) .archive-actions { opacity: 0; pointer-events: none; }
+  .archive-card.is-open .archive-actions { opacity: 1; pointer-events: auto; }
+  .archive-card.is-open .archive-actions button { transform: translateY(0); }
+  .archive-image-wrap { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+}

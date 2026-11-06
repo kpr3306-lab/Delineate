@@ -172,6 +172,8 @@ export default function CollageView({ photos, onSave, notify }: CollageViewProps
   const [busy, setBusy] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pan = useRef<{ x: number; y: number; ox: number; oy: number; i: number; moved: boolean } | null>(null);
+  const openOnClick = useRef(false);
+  const cellPanelRef = useRef<HTMLElement>(null);
   const layout = layoutOf(cfg.layout);
   const byId = useMemo(() => new Map(photos.map((p) => [p.id, p])), [photos]);
 
@@ -240,8 +242,19 @@ export default function CollageView({ photos, onSave, notify }: CollageViewProps
   const onUp = () => {
     const p = pan.current;
     pan.current = null;
-    if (p && !p.moved && !cfg.cells[p.i]?.photoId) setPicker(true);
+    // Open the picker on the click that follows, not here: on phones that click lands on whatever is
+    // under the finger, so opening now would let it pick the photo the picker shows under the finger.
+    openOnClick.current = Boolean(p && !p.moved && !cfg.cells[p.i]?.photoId);
   };
+  const onClick = () => {
+    if (openOnClick.current) setPicker(true);
+    openOnClick.current = false;
+  };
+
+  // A frame was tapped: bring its options into view (on phones they sit under the pinned collage).
+  useEffect(() => {
+    if (selected >= 0) cellPanelRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [selected]);
 
   const shuffle = () => {
     const ids = [...photos].sort(() => Math.random() - 0.5).slice(0, layout.cells.length).map((p) => p.id);
@@ -344,11 +357,12 @@ export default function CollageView({ photos, onSave, notify }: CollageViewProps
             onPointerDown={onDown}
             onPointerMove={onMove}
             onPointerUp={onUp}
+            onClick={onClick}
             onWheel={(e) => selected >= 0 && sel?.photoId && setCell(selected, { zoom: clamp((sel.zoom ?? 1) - e.deltaY / 800, 1, 4) })}
           />
         </section>
 
-        <aside className="cl-panel">
+        <aside className="cl-panel cl-panel-cell" ref={cellPanelRef}>
           {selected >= 0 ? (
             <div className="cl-cell-panel" key={selected}>
               <span className="eyebrow">Frame {selected + 1}</span>

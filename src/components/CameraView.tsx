@@ -234,7 +234,9 @@ export default function CameraView({ filmNumber, photos, undeveloped, onSave, no
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: false,
-          video: { facingMode: { ideal: nextFacing }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          // 4:3 = the sensor's native shape. A 16:9 request crops the sensor, and cutting the default 3:4 frame
+          // out of that crops again, which looked ~1.33x zoomed-in next to the phone's own camera app.
+          video: { facingMode: { ideal: nextFacing }, width: { ideal: 1920 }, height: { ideal: 1440 }, aspectRatio: { ideal: 4 / 3 } },
         });
         if (!aliveRef.current) {
           stream.getTracks().forEach((track) => track.stop());
