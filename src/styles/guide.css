@@ -1,0 +1,142 @@
+/* Studio guide ------------------------------------------------------------ */
+
+.guide-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  padding: 2px 0 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.guide-intro p {
+  flex: 1;
+  margin: 0;
+  color: var(--ink-soft);
+  font-family: var(--serif);
+  font-size: 19px;
+  line-height: 1.45;
+}
+
+.guide-stamp {
+  flex: 0 0 auto;
+  padding: 15px 10px;
+  margin-top: 2px;
+  color: var(--accent-deep);
+  border: 1px solid rgba(198, 93, 54, 0.34);
+  border-radius: 50%;
+  font-family: var(--mono);
+  font-size: 6px;
+  letter-spacing: 0.14em;
+  transform: rotate(-8deg);
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+}
+
+.guide-grid section {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 19px 18px 19px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.guide-grid section:nth-child(odd) {
+  padding-right: 22px;
+  border-right: 1px solid var(--line);
+}
+
+.guide-grid section:nth-child(even) {
+  padding-left: 22px;
+}
+
+.guide-number {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--accent-deep);
+  border: 1px solid rgba(198, 93, 54, 0.28);
+  border-radius: 50%;
+  font-family: var(--mono);
+  font-size: 7px;
+}
+
+.guide-grid h3 {
+  margin: 0 0 5px;
+  font-family: var(--serif);
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.guide-grid p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.guide-grid kbd {
+  margin: 0 1px;
+  vertical-align: 1px;
+}
+
+.guide-shortcuts {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.guide-shortcuts > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 7px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.guide-shortcuts > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 7px;
+  text-transform: uppercase;
+}
+
+.guide-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 15px;
+  margin-top: 16px;
+  color: var(--muted);
+  border: 1px solid rgba(198, 93, 54, 0.18);
+  border-radius: 3px;
+  background: rgba(198, 93, 54, 0.045);
+}
+
+.guide-privacy svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--accent-deep);
+  opacity: 0.75;
+}
+
+.guide-privacy p {
+  margin: 0;
+  font-size: 9.5px;
+  line-height: 1.6;
+}

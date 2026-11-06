@@ -1,0 +1,285 @@
+/* Body selector wheel: a knurled top-dial seen edge-on, mounted above every camera ----- */
+.dc-wheel-row {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: -16px;
+}
+.dc-wheel-spacer { display: flex; flex: 1; justify-content: flex-end; min-width: 0; }
+.dc-wheel {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(440px, 62vw);
+  height: 46px;
+  overflow: hidden;
+  border-radius: 9px;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.08) 24%, rgba(255, 255, 255, 0.32) 50%, rgba(0, 0, 0, 0.08) 76%, rgba(0, 0, 0, 0.72)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.35)),
+    repeating-linear-gradient(90deg, #7e7f7b 0 2px, #eceee9 2px 5px, #a2a39f 5px 7px);
+  background-position: 0 0, 0 0, var(--knurl-x) 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.4),
+    0 10px 18px -6px rgba(0, 0, 0, 0.55),
+    0 0 0 3px #2a2a28;
+  cursor: grab;
+  touch-action: none;
+  perspective: 520px;
+  transition: background-position 360ms cubic-bezier(0.3, 1.4, 0.5, 1);
+  user-select: none;
+}
+.dc-wheel:active { cursor: grabbing; }
+.dc-wheel:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.dc-wheel-notch {
+  position: absolute;
+  top: 0;
+  left: calc(50% - 6px);
+  z-index: 3;
+  border: 6px solid transparent;
+  border-top: 7px solid #d93a2b;
+}
+.dc-wheel-drum { position: absolute; inset: 0; transform-style: preserve-3d; }
+.dc-wheel-item {
+  position: absolute;
+  top: calc(50% - 14px);
+  left: calc(50% - 75px);
+  width: 150px;
+  height: 28px;
+  padding: 0;
+  color: #1b1b1a;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(240, 240, 236, 0.55);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  backface-visibility: hidden;
+  transform: translateZ(-210px) rotateY(var(--a)) translateZ(210px);
+  transition: transform 380ms cubic-bezier(0.3, 1.3, 0.5, 1), opacity 300ms ease, background 300ms ease;
+}
+.dc-wheel-item.is-active { color: #fff; background: rgba(20, 20, 19, 0.82); text-shadow: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2); }
+.dc-roll-word { display: inline; }
+
+/* Live-view extras */
+.dc-ghost { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; object-fit: cover; opacity: 0.45; mix-blend-mode: screen; pointer-events: none; }
+.dc-exposing {
+  position: absolute;
+  top: 44px;
+  left: 50%;
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  color: #fff;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  font-family: var(--mono);
+  font-size: 11px;
+  transform: translateX(-50%);
+}
+.dc-exposing i { width: 8px; height: 8px; border-radius: 50%; background: #ff3b30; animation: livePulse 0.8s ease-in-out infinite; }
+.dc-hud-date { display: none; }
+
+/* Shutter effects: every body fires differently */
+.dc-shutterfx { position: absolute; inset: 0; z-index: 9; display: grid; place-content: center; gap: 8px; opacity: 0; pointer-events: none; }
+.dc-shutterfx.fx-blink.is-on { background: #fff; animation: fxBlink 160ms ease-out both; }
+.dc-shutterfx.fx-curtain { background: #060606; }
+.dc-shutterfx.fx-curtain.is-on { opacity: 1; animation: fxCurtain 90ms linear both; }
+.dc-shutterfx.fx-fade { background: #000; transition: opacity 160ms ease; }
+.dc-shutterfx.fx-fade.is-on { opacity: 0.9; transition-duration: 40ms; }
+.dc-shutterfx.fx-eject.is-on { background: #000; opacity: 1; }
+.dc-shutterfx.fx-process { background: linear-gradient(180deg, #0f2a6b, #071338); color: #dbe6ff; font-family: var(--sans); font-size: 12px; letter-spacing: 0.2em; }
+.dc-shutterfx.fx-process.is-on { opacity: 1; }
+.dc-shutterfx.fx-process i { display: block; width: 140px; height: 8px; border: 1px solid #dbe6ff; border-radius: 2px; background: linear-gradient(90deg, #dbe6ff 0 50%, transparent 50%) 0 0 / 200% 100%; animation: fxProgress 700ms linear both; }
+
+.dc-fly.fly-blink { display: none; }
+.dc-fly.fly-fade { animation: flyFade 700ms ease both; border: 0; }
+.dc-fly.fly-process { animation: flyCorner 900ms ease both; border-width: 3px; }
+.dc-fly.fly-eject {
+  border: 8px solid #fbf8f1;
+  border-bottom-width: 34px;
+  animation: flyEject 1.4s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+}
+.skin-disposable.is-firing { animation: windShake 600ms ease 120ms; }
+
+/* Boot screens */
+.dc-boot-bar { display: none; }
+.skin-disposable .dc-boot { background: #0d0d0c; }
+.skin-disposable .dc-boot strong { color: #ff9a3c; font-family: var(--mono); font-size: 64px; text-shadow: 0 0 18px rgba(255, 120, 30, 0.7); }
+.skin-disposable .dc-boot-logo,
+.skin-rangefinder .dc-boot-logo,
+.skin-minimal .dc-boot-logo,
+.skin-digicam .dc-boot-logo { display: none; }
+.skin-instant .dc-boot { background: #f3eee2; color: #2a2622; }
+.skin-instant .dc-boot-bar,
+.skin-digicam .dc-boot-bar { display: block; justify-self: center; width: 160px; height: 6px; border-radius: 3px; animation: bootBar 700ms ease both; }
+.skin-instant .dc-boot-bar { background: linear-gradient(90deg, #e2463a, #f08a24, #f2c14e, #4bb26a, #3f7fd0); }
+.skin-digicam .dc-boot { background: radial-gradient(circle, #2c5fd6, #0b1d4f); }
+.skin-digicam .dc-boot strong { font-family: var(--sans); font-style: italic; font-weight: 700; letter-spacing: 0.06em; }
+.skin-digicam .dc-boot-bar { background: #fff; }
+.skin-rangefinder .dc-boot strong { font-family: var(--sans); font-size: 30px; font-weight: 600; letter-spacing: 0.3em; }
+.skin-rangefinder .dc-boot { box-shadow: inset 0 0 0 30px #050505, inset 0 0 0 32px rgba(255, 236, 190, 0.6); }
+.skin-minimal .dc-boot { background: #000; }
+.skin-minimal .dc-boot strong { font-family: var(--sans); font-size: 22px; font-weight: 300; letter-spacing: 0.6em; }
+
+/* Viewfinder personalities */
+.skin-disposable .dc-hud-date { display: inline; color: #ff9a3c; font-weight: 700; text-shadow: 0 0 8px rgba(255, 120, 30, 0.9); }
+.skin-disposable .dc-focus { display: none; }
+.skin-digicam .dc-hud { font-family: var(--sans); font-weight: 600; }
+.skin-digicam .dc-hud-mode { border: 0; background: #2a5bd7; }
+.skin-rangefinder .dc-hud { color: #ffe7b0; }
+.skin-rangefinder .dc-focus { width: 64%; height: 62%; border: 1.5px solid rgba(255, 236, 190, 0.85); transition: none; }
+.skin-rangefinder .dc-focus i { display: none; }
+.skin-rangefinder .dc-focus.is-locked { border-color: #ffe7b0; box-shadow: 0 0 0 1px rgba(255, 231, 176, 0.4); }
+.skin-minimal .dc-hud { font-weight: 300; letter-spacing: 0.12em; opacity: 0.85; }
+.skin-minimal .dc-hud-mode { color: #ff8a2a; border-color: #ff8a2a; }
+.skin-instant .dc-hud-bottom { opacity: 0.6; }
+
+/* Button layouts — each body arranges its controls its own way (desktop / tablet) */
+.dc-buttons { grid-template-columns: repeat(4, 1fr); row-gap: 10px; }
+@media (min-width: 861px) {
+  /* Disposable: chunky keys up top, thumbwheel-style zoom at the bottom */
+  .skin-disposable .dc-buttons { order: -1; }
+  .skin-disposable .dc-buttons button > svg,
+  .skin-disposable .dc-buttons button > b { width: 52px; height: 40px; border-radius: 10px; background: #111; color: #f6c03d; }
+  .skin-disposable .dc-zoom { order: 3; }
+  .skin-disposable .dc-knobs .knob-dial { width: 54px; height: 54px; }
+  .skin-disposable .dc-knobs .knob-ticks i { transform-origin: 1px 28px; }
+
+  /* Instant: controls on the left, soft pill buttons */
+  .dc-full .skin-instant .dc-body { grid-template-columns: 300px minmax(0, 1fr); }
+  .skin-instant .dc-panel-fit { order: -1; }
+  .skin-instant .dc-buttons button > svg,
+  .skin-instant .dc-buttons button > b { width: 54px; border-radius: 999px; }
+
+  /* Digital 2000s: a round D-pad cluster of buttons */
+  .skin-digicam .dc-buttons {
+    position: relative;
+    display: block;
+    width: 196px;
+    height: 196px;
+    margin: 6px auto 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, #24324f 0 30px, #c9d3e3 31px 34px, rgba(255, 255, 255, 0.18) 35px);
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4), 0 8px 18px -10px rgba(0, 0, 0, 0.6);
+  }
+  .skin-digicam .dc-buttons button.dc-menu-btn { transform: translate(-50%, -50%); }
+  .skin-digicam .dc-buttons .dc-menu-btn > b { width: 62px; height: 62px; color: #dbe6ff; background: radial-gradient(circle at 40% 30%, #34477a, #1a2645); box-shadow: 0 0 0 3px #c9d3e3, 0 4px 0 rgba(0, 0, 0, 0.45); font-family: var(--sans); font-size: 11px; font-weight: 700; }
+  .skin-digicam .dc-buttons .dc-menu-btn.is-on > b { color: #ffcf3a; }
+  .skin-digicam .dc-buttons button { position: absolute; top: 50%; left: 50%; transform: rotate(calc(var(--i) * 51.4deg)) translateY(-70px) rotate(calc(var(--i) * -51.4deg)) translate(-50%, -50%); }
+  .skin-digicam .dc-buttons button small { display: none; }
+  .skin-digicam .dc-buttons button:nth-child(1) { --i: 0; }
+  .skin-digicam .dc-buttons button:nth-child(2) { --i: 1; }
+  .skin-digicam .dc-buttons button:nth-child(3) { --i: 2; }
+  .skin-digicam .dc-buttons button:nth-child(4) { --i: 3; }
+  .skin-digicam .dc-buttons button:nth-child(5) { --i: 4; }
+  .skin-digicam .dc-buttons button:nth-child(6) { --i: 5; }
+  .skin-digicam .dc-buttons button:nth-child(7) { --i: 6; }
+  .skin-digicam .dc-knobs .knob-dial { width: 52px; height: 52px; }
+  .skin-digicam .dc-knobs .knob-ticks i { transform-origin: 1px 27px; }
+
+  /* Rangefinder: engraved square keys, big knobs, nothing shouting */
+  .skin-rangefinder .dc-knobs { grid-template-columns: repeat(2, 1fr); }
+  .skin-rangefinder .dc-buttons button > svg,
+  .skin-rangefinder .dc-buttons button > b { border-radius: 5px; background: transparent; color: var(--body-ink); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25); }
+
+  /* Modern minimal: slim rail, square icon tiles, orange accents */
+  .dc-full .skin-minimal .dc-body { grid-template-columns: minmax(0, 1fr) 240px; }
+  .skin-minimal .dc-knobs { grid-template-columns: repeat(2, 1fr); }
+  .skin-minimal .dc-buttons button > svg,
+  .skin-minimal .dc-buttons button > b { border-radius: 10px; background: #161616; box-shadow: inset 0 0 0 1px #333; }
+  .skin-minimal .dc-buttons button.is-on > svg,
+  .skin-minimal .dc-buttons button.is-on > b { box-shadow: inset 0 0 0 1.5px #ff8a2a; color: #ff8a2a; }
+  .skin-minimal .dc-buttons small { display: none; }
+}
+
+@media (max-width: 860px) {
+  .dc-wheel-row { margin-bottom: -10px; }
+  .dc-wheel { width: min(300px, 64vw); height: 38px; }
+  .dc-wheel-item { width: 120px; left: calc(50% - 60px); font-size: 9px; transform: translateZ(-150px) rotateY(var(--a)) translateZ(150px); }
+  .dc-roll-word { display: none; }
+  .dc-full .dc-buttons { grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .dc-full .dc-buttons button > svg,
+  .dc-full .dc-buttons button > b { width: 34px; height: 34px; padding: 9px; }
+  .dc-full .dc-buttons small { font-size: 7px; letter-spacing: 0.08em; }
+}
+
+@keyframes fxBlink { from { opacity: 1; } to { opacity: 0; } }
+@keyframes fxCurtain { from { transform: translateY(-100%); } to { transform: none; } }
+@keyframes fxProgress { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@keyframes bootBar { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+@keyframes flyFade { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.06); } }
+@keyframes flyCorner {
+  0% { transform: none; }
+  60% { transform: translate(-36%, 36%) scale(0.22); opacity: 1; }
+  100% { transform: translate(-36%, 36%) scale(0.22); opacity: 0; }
+}
+@keyframes flyEject {
+  0% { transform: translateY(-105%) scale(0.86); filter: grayscale(1) brightness(1.8); }
+  55% { transform: translateY(4%) scale(0.86) rotate(-1deg); filter: grayscale(0.4) brightness(1.2); opacity: 1; }
+  100% { transform: translateY(14%) scale(0.86) rotate(-2deg); filter: none; opacity: 0; }
+}
+@keyframes windShake {
+  0%, 100% { transform: none; }
+  20% { transform: translateX(-2px) rotate(-0.3deg); }
+  40% { transform: translateX(2px) rotate(0.3deg); }
+  60% { transform: translateX(-1px); }
+}
+
+/* Digital 2000s on-screen MENU */
+.dc-menu-btn { display: none; }
+.skin-digicam .dc-menu-btn { display: grid; }
+@media (max-width: 860px) {
+  .dc-full .skin-digicam .dc-buttons { grid-template-columns: repeat(8, 1fr); }
+  .skin-digicam .dc-menu-btn > b { font-size: 7px !important; }
+}
+.dc-menu {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  padding: 6% 7%;
+  color: #e8efff;
+  background: #000;
+  font-family: var(--sans);
+  animation: menuOn 220ms steps(4) both;
+}
+.dc-menu-head { display: flex; align-items: baseline; justify-content: space-between; padding: 6px 12px; margin-bottom: 8px; border-radius: 4px; background: linear-gradient(180deg, #3a6ae0, #1d3a9a); }
+.dc-menu-head span { font-size: clamp(13px, 2vw, 18px); font-style: italic; font-weight: 700; letter-spacing: 0.08em; }
+.dc-menu-head small { font-size: 9px; opacity: 0.8; }
+.dc-menu ul { display: grid; flex: 1; align-content: start; gap: 3px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.dc-menu li button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(4px, 1vh, 9px) 12px;
+  color: inherit;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  font-size: clamp(11px, 1.6vw, 15px);
+  font-weight: 600;
+  text-align: left;
+}
+.dc-menu li button small { color: #8fa4d8; font-size: 0.7em; font-weight: 400; }
+.dc-menu li button.is-active { color: #111; border-color: #ffe27a; background: linear-gradient(180deg, #ffe27a, #ffb820); }
+.dc-menu li button.is-active small { color: #3a2a00; }
+.dc-menu li button.is-return { margin-top: 6px; border-top-color: #24315a; }
+@keyframes menuOn { from { opacity: 0; filter: brightness(3); } to { opacity: 1; filter: none; } }
+.dc-menu ul { scrollbar-width: none; }
+.dc-menu ul::-webkit-scrollbar { display: none; }
+@media (max-width: 860px) {
+  .dc-menu { padding: 4% 5%; }
+  .dc-menu ul { gap: 1px; }
+  .dc-menu li button { padding: 5px 10px; }
+}

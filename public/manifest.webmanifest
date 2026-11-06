@@ -1,0 +1,17 @@
+{
+  "name": "Delineate — Made to Remember",
+  "short_name": "Delineate",
+  "description": "A film camera, darkroom, processing lab, journal and collage studio. Works offline.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "categories": ["photo", "lifestyle"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
