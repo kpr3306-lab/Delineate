@@ -75,7 +75,7 @@ body { transition: background-color 500ms ease, color 400ms ease; }
 .app-main { animation: pageEnter 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 
 /* Phone: bottom tab bar like a native app */
-@media (max-width: 760px) {
+@media (max-width: 760px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   /* backdrop-filter would trap the fixed tab bar inside the header */
   .site-header { backdrop-filter: none; background: rgb(var(--paper-rgb) / 0.97); }
   .main-nav {
@@ -123,7 +123,7 @@ body { transition: background-color 500ms ease, color 400ms ease; }
   .header-right .round-icon { width: 34px; height: 34px; }
   .offline-pill { padding: 4px 7px; }
 }
-@media (max-width: 420px) {
+@media (max-width: 420px), (orientation: landscape) and (pointer: coarse) and (max-height: 420px) {
   .header-right .round-icon:not(.header-help) { width: 30px; height: 30px; }
   .brand-type span { display: none; }
 }
@@ -587,7 +587,7 @@ body { transition: background-color 500ms ease, color 400ms ease; }
 .cl-cell-panel { display: grid; gap: 10px; animation: slideUp 260ms ease both; }
 
 /* Responsive for new sections --------------------------------------------------- */
-@media (max-width: 1180px) {
+@media (max-width: 1180px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .pr-layout,
   .cl-layout { grid-template-columns: minmax(0, 1fr) 290px; }
   .pr-presets { grid-column: 1 / -1; }
@@ -597,7 +597,7 @@ body { transition: background-color 500ms ease, color 400ms ease; }
   .cl-layouts { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
   .jr-workspace { grid-template-columns: 64px minmax(0, 1fr) 260px; }
 }
-@media (max-width: 860px) {
+@media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .pr-layout,
   .cl-layout { grid-template-columns: 1fr; }
   .pr-canvas-wrap { min-height: 240px; }

@@ -617,7 +617,7 @@
 .skin-minimal .knob-cap { box-shadow: 0 0 0 2px var(--accent), 0 6px 10px -4px rgba(0, 0, 0, 0.7); }
 
 /* Phone layout -------------------------------------------------------------- */
-@media (max-width: 860px) {
+@media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .dc-body { grid-template-columns: 1fr; gap: 16px; padding: 16px 14px 6px; }
   .dc-top { gap: 12px; padding: 12px 14px; }
   .dc-hotshoe { display: none; }
@@ -626,7 +626,7 @@
   .dc-screen { max-height: 56vh; }
   .skin-instant .dc-stripe { left: auto; right: 22%; width: 54px; }
 }
-@media (max-width: 520px) {
+@media (max-width: 520px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .dc-stage { padding-top: 4px; }
   .dc-cam { border-radius: 22px; }
   .dc-knobs { gap: 10px 4px; }
@@ -709,7 +709,7 @@
   white-space: nowrap;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .dc-full .dc-body { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; padding: 10px 10px 4px; }
   .dc-full .dc-top { padding: 8px 12px; }
   .dc-full .dc-wordmark strong { font-size: 19px; }

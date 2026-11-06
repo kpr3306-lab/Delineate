@@ -54,7 +54,7 @@
 .jr-thumbs { flex: none; }
 .jr-shelf { flex: 1; min-height: 0; overflow-y: auto; }
 .jr-tools { align-content: start; }
-@media (max-height: 860px) and (min-width: 861px) {
+@media (max-height: 860px) and (min-width: 861px) and (not ((orientation: landscape) and (pointer: coarse) and (max-height: 500px))) {
   .archive-hero { display: none; }
 }
 
@@ -71,47 +71,70 @@
 .header-right { flex: none; }
 .main-nav { min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .main-nav::-webkit-scrollbar { display: none; }
-@media (max-width: 1240px) and (min-width: 761px) {
+@media (max-width: 1240px) and (min-width: 761px) and (not ((orientation: landscape) and (pointer: coarse) and (max-height: 500px))) {
   .main-nav .nav-label { display: none; }
   .main-nav button { padding: 9px 12px; }
   .header-roll { display: none; }
 }
 
-/* Phones: the stage stays pinned at the top, settings scroll underneath it */
-@media (max-width: 860px) {
+/* Screen height the portrait UI actually has (the page is turned sideways under data-rot). */
+:root { --app-h: 100dvh; }
+html[data-rot] { --app-h: 100dvw; }
+
+/* Phones: ONE scroller per page (the page itself). The page header scrolls away, the stage
+   stays pinned at the top at a size that leaves room, and every setting scrolls underneath it.
+   Inner layouts never scroll on their own, so there is never a scroll inside a scroll. */
+@media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
+  .site-header { padding-top: 9px; padding-bottom: 9px; }
   .app-main { padding: 10px 12px calc(74px + env(safe-area-inset-bottom)); }
   .pr-layout,
   .cl-layout,
-  .dv-layout,
   .art-layout,
-  .jr-workspace { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+  .jr-workspace { display: flex; flex: none; flex-direction: column; gap: 12px; min-height: auto; overflow: visible; }
   .pr-layout > *,
   .cl-layout > *,
-  .dv-layout > *,
   .art-layout > *,
   .jr-workspace > * { flex: none; max-height: none; overflow: visible; }
   .pr-stage,
   .cl-stage,
   .art-stage,
-  .dv-room,
-  .jr-desk {
+  .jr-desk,
+  .jr-tools {
     position: sticky;
     top: 0;
     z-index: 6;
     order: -1;
+    background: var(--paper);
     box-shadow: 0 14px 24px -18px rgba(0, 0, 0, 0.5);
   }
-  .pr-stage,
-  .art-stage,
-  .jr-desk { background: var(--paper); }
-  .pr-canvas-wrap { flex: none; height: 40dvh; }
-  .cl-stage { height: 42dvh; }
-  .dv-room { height: 46dvh; min-height: 0; }
-  .jr-desk { height: 52dvh; }
-  .jr-tools { order: -2; }
-  .archive-hero { display: none; }
+  .pr-canvas-wrap { flex: none; height: calc(var(--app-h) * 0.32); }
+  .cl-stage { height: calc(var(--app-h) * 0.36); }
+  .art-stage { height: calc(var(--app-h) * 0.38); }
+  /* journal: the page, then its tool strip pinned right under it */
+  .jr-desk { height: calc(var(--app-h) * 0.44); }
+  .jr-tools { top: calc(var(--app-h) * 0.44); order: 0; z-index: 5; box-shadow: none; }
   .app-main .page-kicker-row { margin-bottom: 8px; }
   .page-kicker p { font-size: 15px; }
+
+  /* archive: slim toolbar that scrolls away, the photos get the screen */
+  .archive-hero { display: none; }
+  .archive-grid { flex: none; min-height: auto; overflow: visible; padding-right: 0; }
+  .app-main > *,
+  .archive-toolbar > * { min-width: 0; max-width: 100%; }
+  .archive-toolbar { gap: 8px; padding: 4px 0 12px; }
+  .archive-filters,
+  .archive-views { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; border-radius: 999px; }
+  .archive-filters::-webkit-scrollbar,
+  .archive-views::-webkit-scrollbar { display: none; }
+  .archive-filters button,
+  .archive-views button { flex: none; }
+  .archive-tools { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 7px; }
+  .archive-tools .search-field { grid-column: 1 / -1; min-width: 0; }
+
+  /* darkroom keeps its own pinned-room layout */
+  .dv-layout { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+  .dv-layout > * { flex: none; max-height: none; overflow: visible; }
+  .dv-room { position: sticky; top: 0; z-index: 6; order: -1; height: calc(var(--app-h) * 0.46); min-height: 0; box-shadow: 0 14px 24px -18px rgba(0, 0, 0, 0.5); }
 }
 
 /* Archive display modes ------------------------------------------------------ */
@@ -163,7 +186,7 @@
 .view-list .archive-image-wrap { aspect-ratio: 1; }
 .view-list .archive-tape { display: none; }
 .view-list .archive-actions { position: static; opacity: 1; }
-@media (max-width: 760px) {
+@media (max-width: 760px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .archive-grid.view-grid,
   .archive-grid.view-wall { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .archive-grid.view-contact { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -386,9 +409,6 @@
 }
 .art-stage .art-canvas-shell { width: auto; max-width: 100%; height: 100%; min-height: 0; }
 .art-stage .board-label { justify-self: stretch; }
-@media (max-width: 860px) {
-  .art-stage { height: 48dvh; }
-}
 
 /* Journal zoom */
 .jr-fit-box { place-items: initial; overflow: auto; overscroll-behavior: contain; }
@@ -440,11 +460,11 @@
 }
 .dv-corner .dv-next:active { transform: translateY(1px) scale(0.98); }
 .dv-corner .dv-warn { padding: 6px 10px; color: #ffd9c9; border-radius: 8px; background: rgba(120, 10, 0, 0.75); }
-@media (max-width: 860px) {
+@media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .dv-corner { top: 10px; left: 10px; max-width: calc(100% - 20px); }
   .dv-corner .dv-next { padding: 9px 13px; font-size: 10px; }
 }
-@media (max-height: 820px) and (min-width: 861px) {
+@media (max-height: 820px) and (min-width: 861px) and (not ((orientation: landscape) and (pointer: coarse) and (max-height: 500px))) {
   .dv-roll { margin-bottom: 10px; padding: 12px 0 14px; }
   .dv-neg { width: 78px; }
   .dv-roll-label { display: none; }
@@ -465,7 +485,7 @@
 .dv-in-tray .dv-print { width: min(180px, 26vw, 34cqh); }
 .dv-trays { width: min(760px, 94%, 150cqh); }
 .dv-trays { top: calc(8% + 48px); }
-@media (max-width: 860px) {
+@media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .dv-roll-label { display: none; }
 }
 
@@ -474,3 +494,14 @@
 .brand-mark::after { display: none; }
 .brand-mark img { width: 100%; height: 100%; animation: slowRotate 24s linear infinite; }
 .brand:hover .brand-mark img { animation-duration: 2s; }
+
+/* Phone turned sideways in a browser that can't lock orientation: counter-rotate the page so the UI stays portrait. */
+html[data-rot] #root { position: fixed; top: 0; left: 0; width: 100dvh; height: 100dvw; overflow: hidden; transform-origin: 0 0; }
+html[data-rot='90'] #root { transform: translateY(100dvh) rotate(-90deg); }
+html[data-rot='270'] #root { transform: translateX(100dvw) rotate(90deg); }
+html[data-rot] .app-shell { height: 100%; }
+html[data-rot] .dc-screen { max-height: 58dvw; container-type: size; }
+/* the stream itself turned with the screen, so turn the preview back to match the world */
+html[data-rot] .dc-video { inset: auto; top: 50%; left: 50%; width: 100cqh; height: 100cqw; translate: -50% -50%; }
+html[data-rot='90'] .dc-video { rotate: 90deg; }
+html[data-rot='270'] .dc-video { rotate: -90deg; }

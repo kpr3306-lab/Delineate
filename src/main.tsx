@@ -9,6 +9,17 @@ import App from './App';
 
 createRoot(document.getElementById('root')!).render(<App />);
 
+// UI is portrait-only on phones. Installed apps lock via the manifest; in a browser tab we counter-rotate the page instead.
+const phoneLandscape = window.matchMedia('(orientation: landscape) and (pointer: coarse) and (max-height: 500px)');
+const syncRotation = () => {
+  const angle = screen.orientation?.angle ?? 0;
+  if (phoneLandscape.matches && (angle === 90 || angle === 270)) document.documentElement.dataset.rot = String(angle);
+  else delete document.documentElement.dataset.rot;
+};
+phoneLandscape.addEventListener('change', syncRotation);
+screen.orientation?.addEventListener('change', syncRotation);
+syncRotation();
+
 // Offline support only in production builds; the dev server should always serve fresh code.
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {

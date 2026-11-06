@@ -1,4 +1,4 @@
-@media (max-width: 1320px) {
+@media (max-width: 1320px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .camera-layout {
     grid-template-columns: minmax(190px, 220px) minmax(0, 1fr) minmax(238px, 268px);
     gap: 17px;
@@ -23,7 +23,7 @@
   }
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 1120px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .site-header {
     gap: 18px;
   }
@@ -144,7 +144,7 @@
   }
 }
 
-@media (max-width: 940px) {
+@media (max-width: 940px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .site-header {
     padding-top: 13px;
     padding-bottom: 13px;
@@ -259,7 +259,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 760px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .site-header {
     flex-wrap: wrap;
     gap: 10px 14px;
@@ -471,7 +471,7 @@
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 560px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .modal-overlay.editor-overlay {
     padding: 0;
   }

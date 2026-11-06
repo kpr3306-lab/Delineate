@@ -153,6 +153,7 @@ export default function CameraView({ filmNumber, photos, undeveloped, onSave, no
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const aliveRef = useRef(true);
+  const tiltRef = useRef<0 | 90 | 270>(0); // how the phone is physically held, from gravity
   const zoomTimer = useRef<number | undefined>(undefined);
   const focusTimer = useRef<number | undefined>(undefined);
   const panelFitRef = useRef<HTMLDivElement>(null);
@@ -258,6 +259,19 @@ export default function CameraView({ filmNumber, photos, undeveloped, onSave, no
     },
     [stopStream],
   );
+
+  useEffect(() => {
+    // Android axes: x > 0 when the top points left (screen angle 90). The margin avoids flicker near 45 degrees.
+    // shortcut: iOS needs DeviceMotionEvent.requestPermission() for this; without it iOS relies on the rotated-UI path only.
+    const onMotion = (e: DeviceMotionEvent) => {
+      const g = e.accelerationIncludingGravity;
+      if (g?.x == null || g.y == null) return;
+      if (Math.abs(g.x) > Math.abs(g.y) + 2) tiltRef.current = g.x > 0 ? 90 : 270;
+      else if (Math.abs(g.y) > Math.abs(g.x) + 2) tiltRef.current = 0;
+    };
+    window.addEventListener('devicemotion', onMotion);
+    return () => window.removeEventListener('devicemotion', onMotion);
+  }, []);
 
   useEffect(() => {
     aliveRef.current = true;
@@ -403,8 +417,16 @@ export default function CameraView({ filmNumber, photos, undeveloped, onSave, no
       setWhiteout(false);
       if (hwFlash) void torch(false);
 
-      const { width, height } = estimateDimensions(ASPECTS[aspect], 1600);
-      let canvas = renderFrame(exposure, exposure.width, exposure.height, width, height, look, { mirror });
+      // Held sideways -> landscape photo. If the browser rotated the page (data-rot) the stream is already upright;
+      // if the UI is locked the frame is still portrait, so turn it ourselves (front camera turns the other way).
+      const uiTurned = Boolean(document.documentElement.dataset.rot);
+      const tilt = tiltRef.current;
+      const rotate = uiTurned || !tilt ? 0 : mirror ? tilt : 360 - tilt;
+      const dims = estimateDimensions(ASPECTS[aspect], 1600);
+      const sideways = uiTurned || tilt !== 0;
+      const width = sideways ? dims.height : dims.width;
+      const height = sideways ? dims.width : dims.height;
+      let canvas = renderFrame(exposure, exposure.width, exposure.height, width, height, look, { mirror, rotate });
       if (flashOn && !hwFlash) canvas = applyFlash(canvas, 0.6);
 
       // Multiple exposure: hold frames on the "film" until the last one, then stack them.

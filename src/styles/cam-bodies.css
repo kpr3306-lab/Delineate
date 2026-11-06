@@ -145,7 +145,7 @@
 
 /* Button layouts — each body arranges its controls its own way (desktop / tablet) */
 .dc-buttons { grid-template-columns: repeat(4, 1fr); row-gap: 10px; }
-@media (min-width: 861px) {
+@media (min-width: 861px) and (not ((orientation: landscape) and (pointer: coarse) and (max-height: 500px))) {
   /* Disposable: chunky keys up top, thumbwheel-style zoom at the bottom */
   .skin-disposable .dc-buttons { order: -1; }
   .skin-disposable .dc-buttons button > svg,
@@ -201,7 +201,7 @@
   .skin-minimal .dc-buttons small { display: none; }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .dc-wheel-row { margin-bottom: -10px; }
   .dc-wheel { width: min(300px, 64vw); height: 38px; }
   .dc-wheel-item { width: 120px; left: calc(50% - 60px); font-size: 9px; transform: translateZ(-150px) rotateY(var(--a)) translateZ(150px); }
@@ -237,7 +237,7 @@
 /* Digital 2000s on-screen MENU */
 .dc-menu-btn { display: none; }
 .skin-digicam .dc-menu-btn { display: grid; }
-@media (max-width: 860px) {
+@media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .dc-full .skin-digicam .dc-buttons { grid-template-columns: repeat(8, 1fr); }
   .skin-digicam .dc-menu-btn > b { font-size: 7px !important; }
 }
@@ -278,7 +278,7 @@
 @keyframes menuOn { from { opacity: 0; filter: brightness(3); } to { opacity: 1; filter: none; } }
 .dc-menu ul { scrollbar-width: none; }
 .dc-menu ul::-webkit-scrollbar { display: none; }
-@media (max-width: 860px) {
+@media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .dc-menu { padding: 4% 5%; }
   .dc-menu ul { gap: 1px; }
   .dc-menu li button { padding: 5px 10px; }
