@@ -155,6 +155,7 @@ export default function JournalView({ photos, notify }: JournalViewProps) {
   const anchor = useRef<{ px: number; py: number; cx: number; cy: number } | null>(null);
   const pan = useRef<{ x: number; y: number; sl: number; st: number } | null>(null);
   const panMoved = useRef(false);
+  const pressedItem = useRef<string | null>(null);
 
   /** Zoom keeping the point under (cx, cy) — fingers, cursor or the centre — where it is. Reads refs so native listeners never go stale. */
   const zoomTo = useCallback(
@@ -333,6 +334,7 @@ export default function JournalView({ photos, notify }: JournalViewProps) {
     if (tool === 'doodle') return;
     e.stopPropagation();
     panMoved.current = false;
+    pressedItem.current = item.id;
     // Only an already-selected item can be dragged by touch, and when zoomed in a drag on anything
     // unselected pans the view. A plain tap (click) selects — so panning never moves elements.
     if (mode === 'move' && selectedId !== item.id && (e.pointerType === 'touch' || zoomRef.current > 1)) {
@@ -354,6 +356,7 @@ export default function JournalView({ photos, notify }: JournalViewProps) {
       return;
     }
     panMoved.current = false;
+    pressedItem.current = null;
     if (e.pointerType !== 'touch' && zoomRef.current > 1) startPan(e); // touch pans natively
   };
   const onPageMove = (e: RPointerEvent<HTMLDivElement>) => {
@@ -700,7 +703,8 @@ export default function JournalView({ photos, notify }: JournalViewProps) {
                 key={page!.id}
                 ref={pageRef}
                 className={`jr-page-shell turn-${turn} ${tool === 'doodle' ? 'is-drawing' : ''} ${zoom > 1 ? 'is-zoomed' : ''}`}
-                onClick={() => !panMoved.current && tool !== 'doodle' && setSelectedId(null)}
+                // pointer capture retargets an item's click to this shell, so select what was pressed
+                onClick={() => !panMoved.current && tool !== 'doodle' && setSelectedId(pressedItem.current)}
                 style={{ transform: `scale(${scale})` }}
                 onPointerDown={onPageDown}
                 onPointerMove={onPageMove}
