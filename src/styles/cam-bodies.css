@@ -143,6 +143,34 @@
 .skin-minimal .dc-hud-mode { color: #ff8a2a; border-color: #ff8a2a; }
 .skin-instant .dc-hud-bottom { opacity: 0.6; }
 
+/* Digital 2000s: a round D-pad cluster of buttons, on every screen size (--pad / --r resize it) */
+.skin-digicam .dc-buttons {
+  --pad: 196px;
+  --r: 70px;
+  position: relative;
+  display: block;
+  width: var(--pad);
+  height: var(--pad);
+  margin: 6px auto 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, #24324f 0 calc(var(--pad) * 0.153), #c9d3e3 calc(var(--pad) * 0.158) calc(var(--pad) * 0.174), rgba(255, 255, 255, 0.18) calc(var(--pad) * 0.179));
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4), 0 8px 18px -10px rgba(0, 0, 0, 0.6);
+}
+.skin-digicam .dc-buttons button.dc-menu-btn { transform: translate(-50%, -50%); }
+.skin-digicam .dc-buttons .dc-menu-btn > b { width: calc(var(--pad) * 0.32); height: calc(var(--pad) * 0.32); color: #dbe6ff; background: radial-gradient(circle at 40% 30%, #34477a, #1a2645); box-shadow: 0 0 0 3px #c9d3e3, 0 4px 0 rgba(0, 0, 0, 0.45); font-family: var(--sans); font-size: 11px; font-weight: 700; }
+.skin-digicam .dc-buttons .dc-menu-btn.is-on > b { color: #ffcf3a; }
+.skin-digicam .dc-buttons button { position: absolute; top: 50%; left: 50%; transform: rotate(calc(var(--i) * 51.4deg)) translateY(calc(var(--r) * -1)) rotate(calc(var(--i) * -51.4deg)) translate(-50%, -50%); }
+.skin-digicam .dc-buttons button:nth-child(1) { --i: 0; }
+.skin-digicam .dc-buttons button:nth-child(2) { --i: 1; }
+.skin-digicam .dc-buttons button:nth-child(3) { --i: 2; }
+.skin-digicam .dc-buttons button:nth-child(4) { --i: 3; }
+.skin-digicam .dc-buttons button:nth-child(5) { --i: 4; }
+.skin-digicam .dc-buttons button:nth-child(6) { --i: 5; }
+.skin-digicam .dc-buttons button:nth-child(7) { --i: 6; }
+/* label-free keys keep their text for screen readers */
+.skin-digicam .dc-buttons button small,
+.skin-minimal .dc-buttons button small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
 /* Button layouts — each body arranges its controls its own way (desktop / tablet) */
 .dc-buttons { grid-template-columns: repeat(4, 1fr); row-gap: 10px; }
 @media (min-width: 861px) and (not ((orientation: landscape) and (pointer: coarse) and (max-height: 500px))) {
@@ -160,29 +188,6 @@
   .skin-instant .dc-buttons button > svg,
   .skin-instant .dc-buttons button > b { width: 54px; border-radius: 999px; }
 
-  /* Digital 2000s: a round D-pad cluster of buttons */
-  .skin-digicam .dc-buttons {
-    position: relative;
-    display: block;
-    width: 196px;
-    height: 196px;
-    margin: 6px auto 0;
-    border-radius: 50%;
-    background: radial-gradient(circle, #24324f 0 30px, #c9d3e3 31px 34px, rgba(255, 255, 255, 0.18) 35px);
-    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4), 0 8px 18px -10px rgba(0, 0, 0, 0.6);
-  }
-  .skin-digicam .dc-buttons button.dc-menu-btn { transform: translate(-50%, -50%); }
-  .skin-digicam .dc-buttons .dc-menu-btn > b { width: 62px; height: 62px; color: #dbe6ff; background: radial-gradient(circle at 40% 30%, #34477a, #1a2645); box-shadow: 0 0 0 3px #c9d3e3, 0 4px 0 rgba(0, 0, 0, 0.45); font-family: var(--sans); font-size: 11px; font-weight: 700; }
-  .skin-digicam .dc-buttons .dc-menu-btn.is-on > b { color: #ffcf3a; }
-  .skin-digicam .dc-buttons button { position: absolute; top: 50%; left: 50%; transform: rotate(calc(var(--i) * 51.4deg)) translateY(-70px) rotate(calc(var(--i) * -51.4deg)) translate(-50%, -50%); }
-  .skin-digicam .dc-buttons button small { display: none; }
-  .skin-digicam .dc-buttons button:nth-child(1) { --i: 0; }
-  .skin-digicam .dc-buttons button:nth-child(2) { --i: 1; }
-  .skin-digicam .dc-buttons button:nth-child(3) { --i: 2; }
-  .skin-digicam .dc-buttons button:nth-child(4) { --i: 3; }
-  .skin-digicam .dc-buttons button:nth-child(5) { --i: 4; }
-  .skin-digicam .dc-buttons button:nth-child(6) { --i: 5; }
-  .skin-digicam .dc-buttons button:nth-child(7) { --i: 6; }
   .skin-digicam .dc-knobs .knob-dial { width: 52px; height: 52px; }
   .skin-digicam .dc-knobs .knob-ticks i { transform-origin: 1px 27px; }
 
@@ -198,7 +203,6 @@
   .skin-minimal .dc-buttons button > b { border-radius: 10px; background: #161616; box-shadow: inset 0 0 0 1px #333; }
   .skin-minimal .dc-buttons button.is-on > svg,
   .skin-minimal .dc-buttons button.is-on > b { box-shadow: inset 0 0 0 1.5px #ff8a2a; color: #ff8a2a; }
-  .skin-minimal .dc-buttons small { display: none; }
 }
 
 @media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
@@ -238,8 +242,6 @@
 .dc-menu-btn { display: none; }
 .skin-digicam .dc-menu-btn { display: grid; }
 @media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
-  .dc-full .skin-digicam .dc-buttons { grid-template-columns: repeat(8, 1fr); }
-  .skin-digicam .dc-menu-btn > b { font-size: 7px !important; }
 }
 .dc-menu {
   position: absolute;
@@ -282,4 +284,93 @@
   .dc-menu { padding: 4% 5%; }
   .dc-menu ul { gap: 1px; }
   .dc-menu li button { padding: 5px 10px; }
+}
+
+/* Button layouts on phones — every body keeps its own arrangement, sized so the panel never
+   scrolls and nothing overlaps (the viewfinder takes whatever height is left). */
+@media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
+  .dc-full .dc-panel { grid-template-columns: minmax(0, 1fr); }
+  .dc-full .dc-buttons button { min-width: 0; }
+
+  /* the vertical zoom rocker some bodies use: T over the readout over W */
+  .dc-full .skin-instant .dc-zoom { flex-direction: column-reverse; gap: 4px; }
+  .dc-full .skin-instant .dc-zoom button { width: 40px; height: 28px; }
+  .dc-full .skin-instant .dc-zoom-read { min-width: 0; font-size: 9px; }
+
+  /* compact knobs for the two-column bodies */
+  .dc-full :is(.skin-digicam, .skin-rangefinder) .dc-knobs { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 2px; }
+  .dc-full :is(.skin-digicam, .skin-rangefinder) .knob-dial { width: 42px; height: 42px; }
+  .dc-full :is(.skin-digicam, .skin-rangefinder) .knob-ticks i { transform-origin: 1px 22px; }
+  .dc-full :is(.skin-digicam, .skin-rangefinder) .dc-zoom { gap: 6px; }
+  .dc-full :is(.skin-digicam, .skin-rangefinder) .dc-zoom button { width: 40px; }
+  .dc-full :is(.skin-digicam, .skin-rangefinder) .dc-zoom-read { min-width: 0; }
+
+  /* Disposable: chunky keys up top on a black plate, knobs, a thumbwheel zoom at the bottom.
+     The red swoosh becomes the plate's top edge so it never runs under the controls. */
+  .skin-disposable .dc-swoosh { display: none; }
+  .dc-full .skin-disposable .dc-panel-fit { padding: 8px 8px 6px; border-top: 4px solid #e2463a; border-radius: 14px; background: #1b1b1a; }
+  .dc-full .skin-disposable .dc-buttons { order: -1; }
+  .dc-full .skin-disposable .dc-zoom { order: 3; }
+  .dc-full .skin-disposable .dc-buttons button > svg,
+  .dc-full .skin-disposable .dc-buttons button > b { width: 100%; max-width: 46px; height: 32px; border-radius: 9px; color: #f6c03d; background: #0c0c0b; box-shadow: 0 3px 0 #000, inset 0 0 0 1px #3a3a39; }
+  .dc-full .skin-disposable .dc-zoom button { width: 64px; border-radius: 6px; background: repeating-linear-gradient(90deg, #2b2b2a 0 3px, #111 3px 6px); color: #f6c03d; }
+
+  /* Instant: knobs on top, soft pill keys beside a vertical zoom rocker */
+  .dc-full .skin-instant .dc-panel { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'knobs knobs' 'buttons zoom'; align-items: center; }
+  .dc-full .skin-instant .dc-knobs { grid-area: knobs; }
+  .dc-full .skin-instant .dc-buttons { grid-area: buttons; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 6px; }
+  .dc-full .skin-instant .dc-zoom { grid-area: zoom; }
+  .dc-full .skin-instant .dc-zoom button { border-radius: 999px; }
+  .dc-full .skin-instant .dc-buttons button > svg,
+  .dc-full .skin-instant .dc-buttons button > b { width: 100%; height: 28px; padding: 6px; border-radius: 999px; }
+  /* the rainbow stripe moves into the gap between the wordmark and the controls */
+  .skin-instant .dc-stripe { display: none; }
+  .dc-full .skin-instant .dc-top-spacer {
+    flex: 0 1 40px;
+    min-width: 12px;
+    align-self: stretch;
+    margin: -8px 0 -8px auto;
+    background: linear-gradient(90deg, #e2463a 0 20%, #f08a24 20% 40%, #f2c14e 40% 60%, #4bb26a 60% 80%, #3f7fd0 80%);
+  }
+
+  /* Digital 2000s: knobs and zoom on the left, the D-pad on the right */
+  .dc-full .skin-digicam .dc-panel { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'knobs pad' 'zoom pad'; align-items: center; column-gap: 10px; }
+  .dc-full .skin-digicam .dc-knobs { grid-area: knobs; }
+  .dc-full .skin-digicam .dc-zoom { grid-area: zoom; }
+  .dc-full .skin-digicam .dc-buttons { --pad: min(148px, 42vw); --r: calc(var(--pad) * 0.36); grid-area: pad; margin: 0; }
+  .dc-full .skin-digicam .dc-buttons button > svg,
+  .dc-full .skin-digicam .dc-buttons button > b { width: 30px; height: 30px; padding: 8px; }
+  .dc-full .skin-digicam .dc-buttons .dc-menu-btn > b { padding: 0; font-size: 9px; }
+
+  /* Rangefinder: knobs on the left, engraved square keys and zoom on the right */
+  .dc-full .skin-rangefinder .dc-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: 'knobs buttons' 'knobs zoom'; align-items: center; column-gap: 10px; }
+  .dc-full .skin-rangefinder .dc-knobs { grid-area: knobs; }
+  .dc-full .skin-rangefinder .dc-buttons { grid-area: buttons; grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 6px; }
+  .dc-full .skin-rangefinder .dc-zoom { grid-area: zoom; }
+  .dc-full .skin-rangefinder .dc-buttons button > svg,
+  .dc-full .skin-rangefinder .dc-buttons button > b { width: 30px; height: 30px; padding: 8px; border-radius: 5px; color: var(--body-ink); background: transparent; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25); }
+  .dc-full .skin-rangefinder .dc-buttons button > b { padding: 0; }
+
+  /* Modern minimal: knobs above one slim row of label-free tiles with W/T on the end */
+  .dc-full .skin-minimal .dc-panel { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'knobs knobs' 'buttons zoom'; align-items: center; column-gap: 10px; }
+  .dc-full .skin-minimal .dc-knobs { grid-area: knobs; }
+  .dc-full .skin-minimal .dc-buttons { grid-area: buttons; }
+  .dc-full .skin-minimal .dc-zoom { grid-area: zoom; }
+  .dc-full .skin-minimal .dc-buttons button > svg,
+  .dc-full .skin-minimal .dc-buttons button > b { width: 100%; max-width: 34px; height: 30px; padding: 7px; border-radius: 8px; background: #161616; box-shadow: inset 0 0 0 1px #333; }
+  .dc-full .skin-minimal .dc-buttons button.is-on > svg,
+  .dc-full .skin-minimal .dc-buttons button.is-on > b { color: #ff8a2a; box-shadow: inset 0 0 0 1.5px #ff8a2a; }
+  .dc-full .skin-minimal .dc-zoom { gap: 4px; }
+  .dc-full .skin-minimal .dc-zoom button { width: 30px; height: 30px; border-radius: 8px; background: #161616; box-shadow: inset 0 0 0 1px #333; }
+  .dc-full .skin-minimal .dc-zoom-read { display: none; } /* the viewfinder HUD shows the zoom */
+}
+
+/* Small phones (≈320px): slimmer knobs and wordmark so the six-across row and the top plate still fit */
+@media (max-width: 350px) {
+  .dc-full .knob-dial { width: 40px; height: 40px; }
+  .dc-full .knob-ticks i { transform-origin: 1px 21px; }
+  .dc-full .knob-label { letter-spacing: 0.06em; }
+  .dc-full .dc-top { gap: 8px; }
+  .dc-full .dc-wordmark strong { font-size: 16px; }
+  .dc-full .skin-minimal .dc-wordmark strong { letter-spacing: 0.12em; }
 }
