@@ -425,7 +425,7 @@ export default function App() {
       <header className="site-header">
         <button className="brand" type="button" onClick={() => go('camera')}>
           <span className="brand-mark">
-            <img src="/brand-mark.png" alt="" />
+            <img src="/brand-mark.png?v=7" alt="" />
           </span>
           <span className="brand-type">
             <strong>Delineate</strong>
