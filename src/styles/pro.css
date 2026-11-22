@@ -274,6 +274,13 @@
   letter-spacing: 0.02em;
 }
 
+/* Phones: vertical swipes scroll the menu; ui.tsx Range turns sideways drags into value changes. */
+.range-row,
+.rk .knob-dial { touch-action: pan-y; }
+@media (pointer: coarse) {
+  .range-row input[type='range'] { pointer-events: none; }
+}
+
 .range-row input[type='range'] {
   width: 100%;
   height: 16px;
@@ -417,7 +424,7 @@
   right: 2px;
   bottom: 2px;
   padding: 1px 3px;
-  color: var(--paper-light);
+  color: #faf5ea;
   background: rgba(24, 26, 20, 0.72);
   font-family: var(--mono);
   font-size: 4.5px;

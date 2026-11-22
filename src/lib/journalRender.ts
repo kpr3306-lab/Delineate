@@ -11,6 +11,10 @@ export const FONT_FAMILY: Record<string, string> = {
   hand: '"Segoe Print", "Bradley Hand", "Comic Sans MS", cursive',
 };
 
+const GINGHAM = 'rgba(200,90,90,.13)';
+const BP_MAJOR = 'rgba(255,255,255,.3)';
+const BP_MINOR = 'rgba(255,255,255,.12)';
+
 /** CSS background for each paper — mirrored by paintPaper() for the PDF. */
 export function paperCss(paper: PaperKind, bg: string): CSSProperties {
   const line = 'rgba(70, 110, 170, 0.22)';
@@ -25,6 +29,16 @@ export function paperCss(paper: PaperKind, bg: string): CSSProperties {
       return { backgroundColor: bg, backgroundImage: 'radial-gradient(circle at 20% 30%, rgba(90,60,20,.12), transparent 40%), radial-gradient(circle at 80% 70%, rgba(90,60,20,.1), transparent 45%)' };
     case 'watercolor':
       return { backgroundColor: bg, backgroundImage: 'radial-gradient(ellipse at 15% 20%, rgba(150,190,170,.28), transparent 45%), radial-gradient(ellipse at 85% 80%, rgba(220,170,150,.25), transparent 45%), radial-gradient(ellipse at 70% 15%, rgba(190,180,220,.2), transparent 40%)' };
+    case 'gingham':
+      return { backgroundColor: bg, backgroundImage: `repeating-linear-gradient(90deg, ${GINGHAM} 0 12px, transparent 12px 24px), repeating-linear-gradient(180deg, ${GINGHAM} 0 12px, transparent 12px 24px)` };
+    case 'parchment':
+      return { backgroundColor: bg, backgroundImage: 'radial-gradient(circle at 30% 20%, rgba(150,100,40,.1), transparent 40%), radial-gradient(circle at 75% 85%, rgba(150,100,40,.12), transparent 45%), radial-gradient(ellipse at center, transparent 50%, rgba(120,80,30,.25) 100%)' };
+    case 'newsprint':
+      return { backgroundColor: bg, backgroundImage: 'repeating-linear-gradient(180deg, transparent 0 5px, rgba(0,0,0,.05) 5px 6px)' };
+    case 'linen':
+      return { backgroundColor: bg, backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,.035) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0,0,0,.03) 0 1px, transparent 1px 3px)' };
+    case 'blueprint':
+      return { backgroundColor: bg, backgroundImage: `repeating-linear-gradient(90deg, ${BP_MAJOR} 0 1px, transparent 1px 120px), repeating-linear-gradient(180deg, ${BP_MAJOR} 0 1px, transparent 1px 120px), repeating-linear-gradient(90deg, ${BP_MINOR} 0 1px, transparent 1px 24px), repeating-linear-gradient(180deg, ${BP_MINOR} 0 1px, transparent 1px 24px)` };
     default:
       return { backgroundColor: bg };
   }
@@ -51,6 +65,44 @@ function paintPaper(ctx: CanvasRenderingContext2D, paper: PaperKind, bg: string)
         ctx.arc(x, y, 1.2, 0, Math.PI * 2);
         ctx.fill();
       }
+  } else if (paper === 'gingham') {
+    ctx.fillStyle = GINGHAM;
+    for (let x = 0; x < PAGE_W; x += 24) ctx.fillRect(x, 0, 12, PAGE_H);
+    for (let y = 0; y < PAGE_H; y += 24) ctx.fillRect(0, y, PAGE_W, 12);
+  } else if (paper === 'newsprint') {
+    ctx.fillStyle = 'rgba(0,0,0,.05)';
+    for (let y = 5; y < PAGE_H; y += 6) ctx.fillRect(0, y, PAGE_W, 1);
+  } else if (paper === 'linen') {
+    ctx.fillStyle = 'rgba(0,0,0,.035)';
+    for (let y = 0; y < PAGE_H; y += 3) ctx.fillRect(0, y, PAGE_W, 1);
+    ctx.fillStyle = 'rgba(0,0,0,.03)';
+    for (let x = 0; x < PAGE_W; x += 3) ctx.fillRect(x, 0, 1, PAGE_H);
+  } else if (paper === 'blueprint') {
+    for (const [step, color] of [[24, BP_MINOR], [120, BP_MAJOR]] as const) {
+      ctx.fillStyle = color;
+      for (let x = 0; x < PAGE_W; x += step) ctx.fillRect(x, 0, 1, PAGE_H);
+      for (let y = 0; y < PAGE_H; y += step) ctx.fillRect(0, y, PAGE_W, 1);
+    }
+  } else if (paper === 'parchment') {
+    for (const [fx, fy, r, color] of [[0.3, 0.2, 0.4, 'rgba(150,100,40,.1)'], [0.75, 0.85, 0.45, 'rgba(150,100,40,.12)']] as const) {
+      // CSS "circle at x y, … 40%" sizes to the farthest corner; close enough at page scale
+      const g = ctx.createRadialGradient(fx * PAGE_W, fy * PAGE_H, 0, fx * PAGE_W, fy * PAGE_H, Math.hypot(PAGE_W, PAGE_H) * r);
+      g.addColorStop(0, color);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, PAGE_W, PAGE_H);
+    }
+    // darkened edges: an ellipse fitted to the page, transparent to 50%
+    ctx.save();
+    ctx.translate(PAGE_W / 2, PAGE_H / 2);
+    ctx.scale(1, PAGE_H / PAGE_W);
+    const r = (PAGE_W / 2) * Math.SQRT2;
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+    g.addColorStop(0.5, 'rgba(120,80,30,0)');
+    g.addColorStop(1, 'rgba(120,80,30,.25)');
+    ctx.fillStyle = g;
+    ctx.fillRect(-PAGE_W / 2, -PAGE_W / 2, PAGE_W, PAGE_W);
+    ctx.restore();
   } else if (paper === 'kraft' || paper === 'watercolor') {
     const blobs: [number, number, string][] =
       paper === 'kraft'
@@ -137,7 +189,43 @@ async function drawItem(ctx: CanvasRenderingContext2D, item: JItem, photos: Map<
       ctx.shadowBlur = 10;
       ctx.fillRect(0, 0, w, h);
       ctx.shadowColor = 'transparent';
-      ix = w * 0.06; iy = w * 0.06; iw = w * 0.88; ih = h - w * 0.06 - h * 0.2;
+      ix = w * 0.06; iy = w * 0.06; iw = w * 0.88; ih = h - w * 0.26;
+    } else if (item.style === 'film') {
+      ctx.fillStyle = '#151311';
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#efe7d6';
+      for (const y of [0.97 * h * 0.025, 0.97 * h * 0.975]) for (let x = 0; x < w; x += w * 0.06) ctx.fillRect(x, y, w * 0.025, h * 0.03);
+      ix = w * 0.03; iy = w * 0.09; iw = w * 0.94; ih = h - w * 0.18;
+    } else if (item.style === 'shadow') {
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(0,0,0,.4)';
+      ctx.shadowBlur = 18;
+      ctx.shadowOffsetY = 10;
+      ctx.fillRect(0, 0, w, h);
+      ctx.shadowColor = 'transparent';
+      ix = w * 0.03; iy = w * 0.03; iw = w * 0.94; ih = h - w * 0.06;
+    } else if (item.style === 'stamp') {
+      // white stamp paper with perforations bitten out of every edge (14px pitch, like the CSS mask)
+      const paper = document.createElement('canvas');
+      paper.width = Math.ceil(w);
+      paper.height = Math.ceil(h);
+      const p = paper.getContext('2d')!;
+      p.fillStyle = '#fffdf8';
+      p.fillRect(0, 0, w, h);
+      p.globalCompositeOperation = 'destination-out';
+      const bite = (x: number, y: number) => {
+        p.beginPath();
+        p.arc(x, y, 4.25, 0, Math.PI * 2);
+        p.fill();
+      };
+      for (let x = 7; x < w; x += 14) { bite(x, 0); bite(x, h); }
+      for (let y = 7; y < h; y += 14) { bite(0, y); bite(w, y); }
+      ctx.shadowColor = 'rgba(0,0,0,.3)';
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetY = 2;
+      ctx.drawImage(paper, 0, 0, w, h);
+      ctx.shadowColor = 'transparent';
+      ix = w * 0.05; iy = w * 0.05; iw = w * 0.9; ih = h - w * 0.1;
     } else if (item.style === 'tape') {
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, w, h);
@@ -183,6 +271,19 @@ export async function renderPage(page: JPage, photos: Map<string, PhotoRecord>, 
   const ctx = canvas.getContext('2d')!;
   ctx.scale(scale, scale);
   paintPaper(ctx, page.paper, page.bg);
+  if (page.bgPhoto) {
+    try {
+      coverDraw(ctx, await loadImage(page.bgPhoto), 0, 0, PAGE_W, PAGE_H);
+      if (page.bgFade) {
+        ctx.globalAlpha = page.bgFade;
+        ctx.fillStyle = page.bg;
+        ctx.fillRect(0, 0, PAGE_W, PAGE_H);
+        ctx.globalAlpha = 1;
+      }
+    } catch (error) {
+      console.warn('Skipped a page background while exporting', error);
+    }
+  }
   for (const item of page.items) {
     try {
       await drawItem(ctx, item, photos);

@@ -20,6 +20,10 @@ export const BASE_LOOK: Look = {
   shadowTint: null,
   highlightTint: null,
   split: 0,
+  highlights: 0,
+  shadows: 0,
+  sharpen: 0,
+  grainSize: 'medium',
 };
 
 export function lookToCss(look: Look) {

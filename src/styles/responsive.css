@@ -18,7 +18,7 @@
   }
 
   .art-layout {
-    grid-template-columns: minmax(220px, 252px) minmax(0, 1fr) minmax(198px, 220px);
+    grid-template-columns: minmax(220px, 252px) minmax(0, 1fr);
     gap: 16px;
   }
 }
@@ -97,50 +97,6 @@
 
   .art-layout {
     grid-template-columns: minmax(220px, 258px) minmax(0, 1fr);
-  }
-
-  .art-source-rail {
-    display: grid;
-    grid-column: 1 / -1;
-    grid-template-columns: 150px minmax(0, 1fr) minmax(180px, 230px);
-    align-items: center;
-    gap: 13px;
-  }
-
-  .art-source-rail .source-rail-head {
-    grid-column: 1 / -1;
-  }
-
-  .source-preview {
-    grid-row: 2 / span 2;
-  }
-
-  .source-preview-name,
-  .source-preview-note {
-    align-self: end;
-  }
-
-  .art-source-rail .source-divider {
-    display: none;
-  }
-
-  .source-thumb-list {
-    flex-direction: row;
-    margin: 0;
-  }
-
-  .source-thumb span {
-    display: none;
-  }
-
-  .source-thumb img {
-    width: 42px;
-    height: 34px;
-  }
-
-  .studio-note {
-    grid-column: 3;
-    grid-row: 2 / span 2;
   }
 }
 
@@ -223,13 +179,6 @@
     padding-top: 24px;
   }
 
-  .art-empty-visual {
-    display: none;
-  }
-
-  .art-source-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 
   .editor-body {
     grid-template-columns: minmax(0, 1fr);
@@ -345,27 +294,6 @@
     grid-row: 1;
   }
 
-  .art-source-rail {
-    display: flex;
-    grid-column: 1;
-    grid-row: 3;
-  }
-
-  .art-source-rail .source-preview {
-    width: 155px;
-  }
-
-  .source-thumb span {
-    display: block;
-  }
-
-  .source-thumb-list {
-    flex-direction: column;
-  }
-
-  .art-source-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 
   .art-style-switcher {
     width: 100%;
@@ -724,7 +652,7 @@
   }
 
   .art-source-grid {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .art-empty-copy h1 {

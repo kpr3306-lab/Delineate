@@ -1,0 +1,197 @@
+/* Keypad phones: real buttons laid on the drawn bodies. Sizes are in cqw of the phone, so labels never
+   outgrow their keys at any size, upright or turned. */
+
+.ph-k,
+.ph-arrow,
+.ph-ok {
+  position: absolute;
+  z-index: 2;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.ph-k {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.28em;
+  overflow: hidden;
+  color: #2a2a2a;
+  line-height: 1;
+  white-space: nowrap;
+  transform: rotate(var(--rot, 0deg));
+  transition: transform 70ms ease, box-shadow 70ms ease, filter 70ms ease;
+}
+/* beats the generic `.cb button { font: inherit }` */
+.cb-ip .ph-k { font-family: Arial, Helvetica, sans-serif; font-size: 4.6cqw; line-height: 1; }
+.ph-k b { font-size: 1em; font-weight: 500; }
+.ph-k small { font-size: 0.52em; letter-spacing: 0.02em; }
+.ph-k.is-swap small { order: -1; }
+.ph-k svg { width: 0.95em; height: 0.95em; }
+.ph-k i { display: block; width: 42%; height: 0.14em; border-radius: 1em; background: currentColor; }
+/* the press: the key sinks, its edge shadow shrinks */
+.ph-k:active { transform: rotate(var(--rot, 0deg)) translateY(1.5px) scale(0.985); filter: brightness(0.94); }
+.ph-k:focus-visible,
+.ph-ok:focus-visible,
+.ph-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* D-pad: a ring of four arrows round a centre key */
+.ph-pad { position: absolute; z-index: 2; border-radius: 50%; }
+.ph-arrow { background: transparent; }
+.ph-arrow::after { content: ''; position: absolute; top: 50%; left: 50%; border: 0.9cqw solid transparent; transform: translate(-50%, -50%); opacity: 0.7; }
+.ph-arrow.is-up { top: 0; left: 30%; width: 40%; height: var(--edge, 30%); }
+.ph-arrow.is-down { bottom: 0; left: 30%; width: 40%; height: var(--edge, 30%); }
+.ph-arrow.is-left { top: 30%; left: 0; width: var(--edge, 30%); height: 40%; }
+.ph-arrow.is-right { top: 30%; right: 0; width: var(--edge, 30%); height: 40%; }
+.ph-arrow.is-up::after { border-bottom: 1.2cqw solid var(--arrow, #333); border-top-width: 0; }
+.ph-arrow.is-down::after { border-top: 1.2cqw solid var(--arrow, #333); border-bottom-width: 0; }
+.ph-arrow.is-left::after { border-right: 1.2cqw solid var(--arrow, #333); border-left-width: 0; }
+.ph-arrow.is-right::after { border-left: 1.2cqw solid var(--arrow, #333); border-right-width: 0; }
+.ph-arrow:active::after { opacity: 1; }
+/* pressing an edge tips the whole pad that way */
+.ph-pad:has(.is-up:active) { transform: perspective(200px) rotateX(8deg); }
+.ph-pad:has(.is-down:active) { transform: perspective(200px) rotateX(-8deg); }
+.ph-pad:has(.is-left:active) { transform: perspective(200px) rotateY(-8deg); }
+.ph-pad:has(.is-right:active) { transform: perspective(200px) rotateY(8deg); }
+.ph-ok { display: grid; place-items: center; border-radius: 50%; transition: transform 70ms ease, box-shadow 70ms ease; }
+.ph-ok:active { transform: translateY(1.5px) scale(0.96); }
+.ph-ok span { display: block; width: 28%; height: 28%; border-radius: 50%; }
+
+/* ── Oval keypad ─────────────────────────────────────────────────────────────────────────── */
+.m-oval .ph-k.is-digit {
+  color: #2c2a26;
+  border-radius: 38% 38% 44% 44% / 48% 48% 56% 56%;
+  background: linear-gradient(180deg, #f1ede5 0%, #ddd7cb 55%, #c3bcae 100%);
+  box-shadow: 0 2px 0 #6f685c, 0 3px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+.m-oval .ph-k.is-digit:active { box-shadow: 0 0.5px 0 #6f685c, inset 0 2px 3px rgba(0, 0, 0, 0.22); }
+.m-oval .ph-k.is-c0 { --rot: 4deg; }
+.m-oval .ph-k.is-c2 { --rot: -4deg; }
+.m-oval .ph-k.is-c0 b { font-style: italic; }
+.m-oval .ph-k.is-softL,
+.m-oval .ph-k.is-softR {
+  color: #3f7fd6;
+  background: linear-gradient(180deg, #f6f3ec, #d1cabd);
+  box-shadow: 0 2px 0 #6f685c, 0 3px 4px rgba(0, 0, 0, 0.3), inset 0 1px 0 #fff;
+}
+.m-oval .ph-k.is-softL { border-radius: 70% 25% 35% 40% / 80% 35% 55% 45%; }
+.m-oval .ph-k.is-softR { color: #7a5bc8; border-radius: 25% 70% 40% 35% / 35% 80% 45% 55%; }
+.m-oval .ph-k.is-softL i,
+.m-oval .ph-k.is-softR i { width: 55%; height: 0.18em; }
+.m-oval .ph-k.is-call,
+.m-oval .ph-k.is-end,
+.m-oval .ph-k.is-menu,
+.m-oval .ph-k.is-back {
+  color: #d5d8dc;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #26282c, #4d5056 55%, #2e3034);
+  box-shadow: 0 2px 0 #0b0b0c, 0 3px 4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.m-oval .ph-k.is-call { --rot: 10deg; }
+.m-oval .ph-k.is-end { --rot: -10deg; }
+.m-oval .ph-k.is-call svg,
+.m-oval .ph-k.is-end svg { display: none; }
+.m-oval .ph-k.is-call::after,
+.m-oval .ph-k.is-end::after { content: ''; width: 22%; height: 58%; border-radius: 1em; background: #2fb65a; box-shadow: 0 0 4px rgba(47, 182, 90, 0.6); }
+.m-oval .ph-k.is-end::after { background: #e0352a; box-shadow: 0 0 4px rgba(224, 53, 42, 0.6); }
+.m-oval .ph-k.is-menu { color: #6aa0ff; border-radius: 40%; }
+.m-oval .ph-k.is-back { border-radius: 40%; }
+.m-oval .ph-k.is-menu:active,
+.m-oval .ph-k.is-back:active,
+.m-oval .ph-k.is-call:active,
+.m-oval .ph-k.is-end:active,
+.m-oval .ph-k.is-softL:active,
+.m-oval .ph-k.is-softR:active { box-shadow: 0 0.5px 0 #0b0b0c, inset 0 2px 3px rgba(0, 0, 0, 0.35); }
+.m-oval .ph-pad { --arrow: transparent; }
+.m-oval .ph-ok { inset: 8% !important; background: radial-gradient(circle at 42% 32%, #5a5d64, #0e0f11 62%); box-shadow: 0 0 0 0.9cqw #a39c90, 0 3px 4px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.2); }
+.m-oval .ph-ok span { width: 26%; height: 26%; background: rgba(255, 255, 255, 0.18); }
+
+/* ── Classic candybar ────────────────────────────────────────────────────────────────────── */
+.m-candybar .ph-k.is-digit {
+  color: #23262b;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #eef0f2 0%, #cfd3d8 50%, #b2b8bf 100%);
+  box-shadow: 0 1.5px 0 #4b5058, 0 0 0 1px rgba(0, 0, 0, 0.25), inset 0 1px 0 #fff;
+}
+.m-candybar .ph-k.is-digit:active { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), inset 0 2px 3px rgba(0, 0, 0, 0.25); }
+.m-candybar .ph-k.is-softL,
+.m-candybar .ph-k.is-softR,
+.m-candybar .ph-k.is-call,
+.m-candybar .ph-k.is-end,
+.m-candybar .ph-k.is-menu,
+.m-candybar .ph-k.is-back {
+  color: #4b5058;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f3f5f7, #c2c7cd);
+  box-shadow: 0 1.5px 0 #4b5058, 0 0 0 1px rgba(0, 0, 0, 0.25), inset 0 1px 0 #fff;
+}
+.m-candybar .ph-k.is-softL { border-radius: 12px 4px 4px 6px; }
+.m-candybar .ph-k.is-softR { border-radius: 4px 12px 6px 4px; }
+.m-candybar .ph-k.is-call { color: #1f9a4c; }
+.m-candybar .ph-k.is-end { color: #d02a20; }
+.m-candybar .ph-k:not(.is-digit):active { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), inset 0 2px 3px rgba(0, 0, 0, 0.25); }
+.m-candybar .ph-pad { --arrow: #5a5f66; border-radius: 26%; background: linear-gradient(145deg, #fafbfc, #c3c8ce 60%, #9fa5ad); box-shadow: 0 0 0 1.5px #4b5058, 0 3px 4px rgba(0, 0, 0, 0.35), inset 0 1px 0 #fff, inset 0 -3px 5px rgba(0, 0, 0, 0.18); transition: transform 80ms ease; }
+.m-candybar .ph-ok { border-radius: 28%; background: linear-gradient(145deg, #ffffff, #bcc2c8); box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.3), 0 2px 3px rgba(0, 0, 0, 0.35), inset 0 1px 0 #fff; }
+.m-candybar .ph-ok span { background: radial-gradient(circle at 40% 30%, #fff, #8d939a); }
+
+/* ── Cyber phone ─────────────────────────────────────────────────────────────────────────── */
+.m-cyberphone .ph-k.is-digit {
+  color: #f2f2f2;
+  border-radius: 999px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.2), transparent 60%), linear-gradient(180deg, #2c2d30, #0e0e0f);
+  box-shadow: 0 0 0 1.5px #9a9ca0, 0 0 0 3px #0a0a0a, 0 3px 4px rgba(0, 0, 0, 0.7);
+}
+.m-cyberphone .ph-k.is-digit small { color: #b9bbbf; text-transform: uppercase; }
+.m-cyberphone .ph-k.is-digit:active { box-shadow: 0 0 0 1.5px #9a9ca0, 0 0 0 3px #0a0a0a, inset 0 2px 4px rgba(0, 0, 0, 0.8); }
+/* each side key is a disc: softkey on top, back/C below, orange crescent on the outer edge */
+.m-cyberphone .ph-k.is-softL,
+.m-cyberphone .ph-k.is-softR,
+.m-cyberphone .ph-k.is-back {
+  color: #e8e8e8;
+  background: linear-gradient(180deg, #3a3b3f, #111113);
+  box-shadow: 0 0 0 1px #5a5c60, 0 3px 4px rgba(0, 0, 0, 0.6);
+}
+.m-cyberphone .ph-k.is-softL,
+.m-cyberphone .ph-k.is-softR { border-radius: 50% 50% 4px 4px / 100% 100% 4px 4px; }
+.m-cyberphone .ph-k.is-back { border-radius: 4px 4px 50% 50% / 4px 4px 100% 100%; }
+.m-cyberphone .ph-k.is-softL.is-l,
+.m-cyberphone .ph-k.is-back.is-l { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.m-cyberphone .ph-k.is-softR.is-r,
+.m-cyberphone .ph-k.is-back.is-r { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.m-cyberphone .ph-k.is-softL i,
+.m-cyberphone .ph-k.is-softR i { width: 30%; height: 0.14em; }
+.m-cyberphone .ph-k.is-call,
+.m-cyberphone .ph-k.is-end {
+  color: #3a1c06;
+  background: radial-gradient(circle at 40% 30%, #ffb26b, #e8701c 55%, #a1450b);
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+.m-cyberphone .ph-k.is-call { border-radius: 100% 0 0 100% / 50% 0 0 50%; }
+.m-cyberphone .ph-k.is-end { border-radius: 0 100% 100% 0 / 0 50% 50% 0; }
+.m-cyberphone .ph-k:not(.is-digit):active { filter: brightness(0.85); }
+.m-cyberphone .ph-pad { --arrow: #2a2a2a; background: radial-gradient(circle at 45% 30%, #ffffff, #c9cbcf 45%, #7d8086); box-shadow: 0 0 0 1.5px #1a1a1a, 0 4px 6px rgba(0, 0, 0, 0.7), inset 0 0 0 18% #1a1a1b; transition: transform 80ms ease; }
+.m-cyberphone .ph-pad::before { content: ''; position: absolute; inset: 17%; border-radius: 50%; background: #1a1a1b; }
+.m-cyberphone .ph-ok { background: radial-gradient(circle at 40% 30%, #ffb26b, #e8701c 55%, #a1450b); box-shadow: 0 0 0 0.9cqw #c9cbcf, 0 2px 3px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.5); }
+
+/* ── Razor flip: gunmetal sheet, keys etched into it, soft ice-blue backlight ─────────────────── */
+.m-flip .ph-k {
+  color: #9fd2f7;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #333b44, #252b32);
+  box-shadow: inset 0 0 0 1px rgba(160, 190, 220, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+.m-flip .ph-k.is-digit { border-radius: 4px 4px 30% 30% / 4px 4px 10px 10px; }
+.m-flip .ph-k.is-digit b { color: #d8efff; font-weight: 400; text-shadow: 0 0 6px rgba(120, 190, 255, 0.55); }
+.m-flip .ph-k.is-digit small { color: #7fb8e6; }
+.m-flip .ph-k i { background: #7fc0f5; box-shadow: 0 0 5px rgba(127, 192, 245, 0.6); }
+.m-flip .ph-k.is-call { color: #4ade80; }
+.m-flip .ph-k.is-end { color: #f87171; }
+.m-flip .ph-k svg { filter: drop-shadow(0 0 3px currentColor); }
+.m-flip .ph-k:active { background: linear-gradient(180deg, #2a3138, #1f252b); box-shadow: inset 0 0 0 1px rgba(150, 205, 255, 0.5), inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(110, 185, 255, 0.35); }
+.m-flip .ph-pad { --arrow: #8cc8f4; background: radial-gradient(circle, #2b323a 0 64%, rgba(140, 195, 240, 0.55) 65.5%, #2b323a 67.5%); box-shadow: 0 0 0 1px rgba(160, 190, 220, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06); transition: transform 80ms ease; }
+.m-flip .ph-ok { background: linear-gradient(180deg, #3a434d, #2a3139); box-shadow: inset 0 0 0 1px rgba(150, 205, 255, 0.45), 0 1px 2px rgba(0, 0, 0, 0.5); }
+.m-flip .ph-ok span { background: #9fd2f7; box-shadow: 0 0 6px rgba(120, 190, 255, 0.8); }
+/* the flip is narrow: larger labels so its numbers stay legible */
+.cb-ip.m-flip .ph-k { font-size: 6.6cqw; }

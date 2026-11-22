@@ -93,7 +93,8 @@
   box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.9), 0 30px 60px -30px rgba(0, 0, 0, 0.8);
   transition: background 900ms ease, filter 900ms ease;
   user-select: none;
-  touch-action: none;
+  /* only the tongs, trays and buttons grab the finger; the room itself lets the page scroll */
+  touch-action: pan-y;
 }
 .dv-safelight {
   position: absolute;

@@ -9,6 +9,7 @@ type RenderOptions = {
 };
 
 let noiseCanvas: HTMLCanvasElement | null = null;
+const GRAIN_SCALE = { fine: 0.55, medium: 1, coarse: 2.2 } as const;
 
 function getNoiseCanvas() {
   if (noiseCanvas) return noiseCanvas;
@@ -73,7 +74,7 @@ function createOrientedSource(
   return mirrored;
 }
 
-function paintOverlays(
+export function paintOverlays(
   context: CanvasRenderingContext2D,
   width: number,
   height: number,
@@ -139,6 +140,9 @@ function paintOverlays(
   if (look.grain > 0) {
     const pattern = context.createPattern(getNoiseCanvas(), 'repeat');
     if (pattern) {
+      // grain scales with the frame so the 900px preview matches the 2000px export
+      const scale = GRAIN_SCALE[look.grainSize ?? 'medium'] * (Math.max(width, height) / 1400);
+      pattern.setTransform(new DOMMatrix().scale(scale));
       context.save();
       context.globalCompositeOperation = 'overlay';
       context.globalAlpha = clamp(look.grain / 100, 0, 1) * 0.52;

@@ -107,6 +107,12 @@ export const DECOS: Deco[] = [
   { id: 'swirl', name: 'Swirl', cat: 'Doodles', w: 80, h: 80, color: '#5b8bd9', svg: (c) => svg('0 0 100 100', `<path d="M50 50 m0 -4 a4 4 0 1 1 -4 4 a10 10 0 1 1 10 10 a18 18 0 1 1 -18 -18 a28 28 0 1 1 28 28 a38 38 0 1 1 -38 -38" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`) },
   { id: 'confetti', name: 'Confetti', cat: 'Doodles', w: 140, h: 100, color: '#ff7a45',
     svg: () => svg('0 0 140 100', Array.from({ length: 26 }, (_, i) => `<rect x="${(i * 53) % 136}" y="${(i * 37) % 96}" width="6" height="10" fill="${['#ff7a45', '#f2c14e', '#5b8bd9', '#7fb8a4', '#e2566e'][i % 5]}" transform="rotate(${i * 41} ${(i * 53) % 136} ${(i * 37) % 96})"/>`).join('')) },
+  { id: 'smiley', name: 'Smiley', cat: 'Doodles', w: 80, h: 80, color: '#222222', svg: (c) => svg('0 0 100 100', `<circle cx="50" cy="50" r="42" fill="none" stroke="${c}" stroke-width="4"/><circle cx="36" cy="42" r="4.5" fill="${c}"/><circle cx="64" cy="42" r="4.5" fill="${c}"/><path d="M32 60 Q50 78 68 60" fill="none" stroke="${c}" stroke-width="4" stroke-linecap="round"/>`) },
+  { id: 'heart-line', name: 'Heart outline', cat: 'Doodles', w: 76, h: 68, color: '#e2566e', svg: (c) => svg('0 0 100 90', `<path d="M50 84 C14 58 4 38 10 22 C17 5 41 6 50 24 C59 6 83 5 90 22 C96 38 86 58 50 84Z" fill="none" stroke="${c}" stroke-width="4" stroke-linejoin="round"/>`) },
+  { id: 'star-line', name: 'Star outline', cat: 'Doodles', w: 76, h: 76, color: '#f2a63a', svg: (c) => svg('0 0 100 100', `<polygon points="${star(5, 44, 19)}" fill="none" stroke="${c}" stroke-width="4" stroke-linejoin="round"/>`) },
+  { id: 'bolt', name: 'Lightning', cat: 'Doodles', w: 56, h: 90, color: '#f5c518', svg: (c) => svg('0 0 60 100', `<path d="M36 2 L6 56 H28 L20 98 L54 38 H32 Z" fill="${c}" stroke="#2228" stroke-width="2.5" stroke-linejoin="round"/>`) },
+  { id: 'scribble-frame', name: 'Scribble frame', cat: 'Doodles', w: 180, h: 130, color: '#222222', svg: (c) => svg('0 0 180 130', `<path d="M10 14 C60 6 120 10 170 12 M168 8 C172 50 166 90 170 122 M174 118 C120 124 60 120 8 124 M12 128 C6 90 12 50 8 6" fill="none" stroke="${c}" stroke-width="3.5" stroke-linecap="round"/>`) },
+  { id: 'flower-doodle', name: 'Flower doodle', cat: 'Doodles', w: 70, h: 100, color: '#e2566e', svg: (c) => svg('0 0 70 100', `<path d="M35 98 C34 80 37 66 35 50" stroke="#4f7a3a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M35 72 C24 66 18 70 16 76 C24 80 30 78 35 72Z" fill="none" stroke="#4f7a3a" stroke-width="2.5"/>` + Array.from({ length: 6 }, (_, i) => `<ellipse cx="35" cy="16" rx="8" ry="14" fill="none" stroke="${c}" stroke-width="3" transform="rotate(${i * 60} 35 30)"/>`).join('') + `<circle cx="35" cy="30" r="6" fill="${c}"/>`) },
   { id: 'balloon', name: 'Balloon', cat: 'Doodles', w: 56, h: 110, color: '#e2463a', svg: (c) => svg('0 0 56 110', `<ellipse cx="28" cy="30" rx="26" ry="29" fill="${c}"/><path d="M24 58 L32 58 L28 64Z" fill="${c}"/><path d="M28 64 C20 80 36 92 28 108" stroke="#555" fill="none" stroke-width="1.5"/><ellipse cx="18" cy="20" rx="6" ry="9" fill="#fff" opacity=".4"/>`) },
 
   // Emoji stickers
@@ -149,6 +155,16 @@ export const THEMES: JournalTheme[] = [
   { id: 'night', name: 'Night Sky', note: 'Midnight blue & silver stars', cover: '#1b2440', bg: '#1f2a4a', paper: 'plain', ink: '#f2ead9', font: 'serif', accent: '#f3e3a3', decos: ['moon', 'star', 'sparkle', 'twinkles', 'tape-gold'] },
   { id: 'school', name: 'School Days', note: 'Notebook lines & doodles', cover: '#2f5d8c', bg: '#ffffff', paper: 'lined', ink: '#1d2a44', font: 'hand', accent: '#e2463a', decos: ['arrow', 'circle-scribble', 'note-yellow', 'paperclip', 'crown'] },
   { id: 'minimal', name: 'Minimal Mono', note: 'Quiet white space', cover: '#20231d', bg: '#f8f6f1', paper: 'plain', ink: '#20231d', font: 'sans', accent: '#20231d', decos: ['label', 'underline', 'tape-plain'] },
+  { id: 'retro90s', name: 'Retro ’90s', note: 'Teal, hot pink & mixtapes', cover: '#2bb3a6', bg: '#fff7e8', paper: 'grid', ink: '#2a1f5a', font: 'sans', accent: '#ff4f9a', decos: ['burst', 'emoji-music', 'sparkle', 'tape-check', 'swirl'] },
+  { id: 'cottage', name: 'Cottagecore', note: 'Gingham, berries & wildflowers', cover: '#a8b88a', bg: '#fbf5e6', paper: 'gingham', ink: '#4a3b2a', font: 'hand', accent: '#d88a7a', decos: ['flower-shape', 'emoji-strawberry', 'tulip', 'tape-dots', 'emoji-herb'] },
+  { id: 'seaside', name: 'Seaside', note: 'Salt water & sea-glass blues', cover: '#2f6f9f', bg: '#eef6f8', paper: 'watercolor', ink: '#173a54', font: 'serif', accent: '#f2a65a', decos: ['emoji-shell', 'emoji-wave', 'sun', 'tape-stripe', 'emoji-island'] },
+  { id: 'autumn', name: 'Autumn Café', note: 'Parchment, coffee & falling leaves', cover: '#8a4a24', bg: '#f4e6d0', paper: 'parchment', ink: '#4a2a14', font: 'serif', accent: '#c65d36', decos: ['emoji-autumn', 'emoji-coffee', 'leaf', 'tape-plain', 'emoji-books'] },
+  { id: 'winter', name: 'Winter Holidays', note: 'Candlelight, snow & gold', cover: '#9e2a2b', bg: '#f7f7f4', paper: 'linen', ink: '#1f3a2e', font: 'serif', accent: '#c9a14a', decos: ['emoji-snow', 'star', 'tape-gold', 'sparkle', 'emoji-candle'] },
+  { id: 'zine', name: 'Cut & Paste Zine', note: 'Newsprint, black ink, red marker', cover: '#111111', bg: '#ecebe6', paper: 'newsprint', ink: '#111111', font: 'mono', accent: '#ff3b30', decos: ['torn', 'circle-scribble', 'arrow', 'tape-plain', 'label'] },
+  { id: 'wedding', name: 'Wedding Album', note: 'Ivory linen, roses & gilt', cover: '#efe6d8', bg: '#fffdf8', paper: 'linen', ink: '#5a4a3a', font: 'serif', accent: '#c9a14a', decos: ['rose', 'tape-gold', 'sparkle', 'emoji-letter', 'heart'] },
+  { id: 'blueprint', name: 'Blueprint', note: 'Projects, plans & big ideas', cover: '#1d3f73', bg: '#244b87', paper: 'blueprint', ink: '#f4f8ff', font: 'mono', accent: '#ffd166', decos: ['compass', 'arrow', 'twinkles', 'paperclip', 'label'] },
+  { id: 'y2k', name: 'Y2K Glitter', note: 'Bubblegum chrome & sparkles', cover: '#c56bff', bg: '#fdf0ff', paper: 'dots', ink: '#5a1a7a', font: 'sans', accent: '#ff4fd8', decos: ['sparkle', 'emoji-dizzy', 'heart', 'tape-hearts', 'emoji-bow'] },
+  { id: 'baby', name: 'Little One', note: 'Soft clouds, moons & firsts', cover: '#a9cbe8', bg: '#f6fbff', paper: 'dots', ink: '#3a4a6a', font: 'hand', accent: '#f6b8c8', decos: ['moon', 'cloud', 'star', 'emoji-balloon-emoji', 'tape-dots'] },
 ];
 export const getTheme = (id: string) => THEMES.find((t) => t.id === id) ?? THEMES[0];
 
@@ -199,6 +215,13 @@ export const TEMPLATES: Template[] = [
     deco('torn', 30, 40, 400, 240, -3), photo(60, 70, 300, 220, -5, 'plain'), photo(260, 200, 300, 300, 6, 'round'),
     deco('banner', 60, 540, 300, 70, -3, t.accent), text(t, 90, 553, 250, 44, 'best day ever', 26, -3, { color: '#ffffff', align: 'center', font: 'hand' }),
     deco(t.decos[0] ?? 'star', 420, 560, 120, 120, 12), deco('sparkle', 80, 650, 60, 60), deco('sparkle', 160, 700, 40, 40) ] },
+  { id: 'fullbleed', name: 'Full bleed', note: 'Edge-to-edge photo, title on a tag.', build: (t) => [
+    photo(0, 0, 600, 800, 0, 'plain'), deco('tag', 300, 640, 270, 110, -4, '#fbf7ec'),
+    text(t, 340, 662, 220, 70, 'the best part', 28, -4, { font: 'hand', color: '#2a2622', align: 'center' }) ] },
+  { id: 'trio', name: 'Stacked trio', note: 'Three prints, gently fanned.', build: (t) => [
+    text(t, 50, 36, 500, 56, 'Roll highlights', 40, 0, { font: 'serif', align: 'center' }),
+    photo(60, 120, 300, 330, -5, 'shadow'), photo(250, 230, 300, 330, 4, 'shadow'), photo(110, 420, 300, 330, -2, 'film'),
+    deco(t.decos[3] ?? 'tape-plain', 430, 210, 120, 30, 20), deco(t.decos[0] ?? 'star', 460, 640, 90, 90, 10) ] },
 ];
 
 export function buildTemplate(templateId: string, theme: JournalTheme) {

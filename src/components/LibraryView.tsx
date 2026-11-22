@@ -1,23 +1,26 @@
 import JSZip from 'jszip';
 import {
   Archive,
+  Check,
+  CheckSquare,
   ChevronDown,
   Download,
+  FolderPlus,
   ImagePlus,
-  FlaskConical,
   Heart,
   Lock,
   PackageOpen,
-  Pencil,
   Search,
-  Sparkles,
   Trash2,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState, type MouseEvent } from 'react';
-import type { PhotoKind, PhotoRecord } from '../types';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import type { Album, Collection, PhotoKind, PhotoRecord } from '../types';
 import { downloadBlob, fileSlug, formatDate, pad } from '../lib/utils';
-import { EmptyState, Modal, Spinner, useObjectUrl } from './ui';
+import { EmptyState, Modal, Spinner, Thumb, useObjectUrl, type ToastAction } from './ui';
+import AlbumPicker from './AlbumPicker';
+import PhotoViewer from './PhotoViewer';
 
 type LibraryViewProps = {
   photos: PhotoRecord[];
@@ -25,10 +28,16 @@ type LibraryViewProps = {
   onArt: (record: PhotoRecord) => void;
   onDevelop: (record: PhotoRecord) => void;
   onFavorite: (record: PhotoRecord) => void;
+  onRename: (record: PhotoRecord, name: string) => void;
   onDelete: (id: string) => Promise<void>;
   onImport: () => void;
   onCamera: () => void;
-  notify: (message: string, tone?: 'default' | 'warning') => void;
+  notify: (message: string, tone?: 'default' | 'warning', action?: ToastAction) => void;
+  /** Put deleted frames back (Undo). */
+  onRestore: (records: PhotoRecord[]) => Promise<void>;
+  albums: Album[];
+  onSaveCollection: (c: Collection) => Promise<void>;
+  onDeleteCollection: (id: string) => Promise<void>;
 };
 
 const VIEWS = [
@@ -59,23 +68,7 @@ const extensionFor = (record: PhotoRecord) => {
   return 'jpg';
 };
 
-function ArchiveCard({
-  record,
-  index,
-  onEdit,
-  onArt,
-  onDevelop,
-  onFavorite,
-  onDelete,
-}: {
-  record: PhotoRecord;
-  index: number;
-  onEdit: (record: PhotoRecord) => void;
-  onArt: (record: PhotoRecord) => void;
-  onDevelop: (record: PhotoRecord) => void;
-  onFavorite: (record: PhotoRecord) => void;
-  onDelete: (record: PhotoRecord) => void;
-}) {
+function ArchiveCard({ record, index, onOpen, onFavorite, selected }: { record: PhotoRecord; index: number; onOpen: () => void; onFavorite: (record: PhotoRecord) => void; selected?: boolean }) {
   const url = useObjectUrl(record.blob);
   const isAnimated = record.kind === 'animated';
   const negative = record.developed === false;
@@ -89,20 +82,14 @@ function ArchiveCard({
           ? 'COL'
           : `${pad(index + 1, 2)}`;
 
-  const download = () =>
-    downloadBlob(record.blob, `${fileSlug(record.name)}.${extensionFor(record)}`);
-
-  // Touch screens have no hover: the first tap on the photo reveals the actions, a second tap hides them.
-  const [open, setOpen] = useState(false);
-  const toggleActions = (event: MouseEvent<HTMLDivElement>) => {
-    if (!window.matchMedia('(hover: none)').matches || (event.target as HTMLElement).closest('button')) return;
-    setOpen((o) => !o);
-  };
-
   return (
-    <article className={`archive-card ${open ? 'is-open' : ''}`} style={{ animationDelay: `${Math.min(index, 9) * 45}ms` }}>
-      <div className="archive-image-wrap" onClick={toggleActions}>
-        {url && <img src={url} alt={record.name} loading="lazy" className={negative ? 'is-negative' : ''} />}
+    <article className={`archive-card ${selected !== undefined ? 'is-selecting' : ''} ${selected ? 'is-selected' : ''}`} style={{ animationDelay: `${Math.min(index, 9) * 45}ms` }}>
+      <div className="archive-image-wrap">
+        {/* a real tap (click) opens the viewer; a scroll that starts on the photo never does */}
+        <button type="button" className="archive-open" onClick={onOpen} aria-label={selected === undefined ? `Open ${record.name}` : `${selected ? 'Deselect' : 'Select'} ${record.name}`} aria-pressed={selected}>
+          {url && <img src={url} alt="" loading="lazy" className={negative ? 'is-negative' : ''} />}
+          {selected !== undefined && <span className="archive-check" aria-hidden="true">{selected && <Check size={14} strokeWidth={3} />}</span>}
+        </button>
         <button
           type="button"
           className={`archive-fav ${record.favorite ? 'is-on' : ''}`}
@@ -112,42 +99,9 @@ function ArchiveCard({
         >
           <Heart size={14} />
         </button>
-        <div className="archive-shade" />
         <div className="archive-topline">
           <span className={`archive-kind ${isAnimated ? 'is-animated' : ''}`}>{kindLabel}</span>
           {isAnimated && <span className="archive-gif">LOOP</span>}
-        </div>
-        <div className="archive-actions">
-          {negative ? (
-            <button type="button" title="Develop in the darkroom" onClick={() => onDevelop(record)}>
-              <FlaskConical size={15} />
-              <span>Develop</span>
-            </button>
-          ) : (
-            <>
-              <button
-                type="button"
-                title={record.process ? 'Re-edit processing settings' : 'Edit in Processing'}
-                onClick={() => onEdit(record)}
-                disabled={record.kind === 'animated'}
-              >
-                <Pencil size={15} />
-                <span>{record.process ? 'Re-edit' : 'Edit'}</span>
-              </button>
-              <button type="button" title="Open in art lab" onClick={() => onArt(record)}>
-                <Sparkles size={15} />
-                <span>Art</span>
-              </button>
-            </>
-          )}
-          <button type="button" title="Download" onClick={download}>
-            <Download size={15} />
-            <span>Save</span>
-          </button>
-          <button type="button" title="Delete" className="danger" onClick={() => onDelete(record)}>
-            <Trash2 size={15} />
-            <span>Delete</span>
-          </button>
         </div>
       </div>
       <div className="archive-caption">
@@ -157,9 +111,6 @@ function ArchiveCard({
             {formatDate(record.createdAt)} · {record.filterName}
           </span>
         </div>
-        <button className="caption-download" type="button" onClick={download} aria-label="Download photo">
-          <Download size={14} />
-        </button>
       </div>
       <span className="archive-tape" aria-hidden="true" />
     </article>
@@ -172,11 +123,21 @@ export default function LibraryView({
   onArt,
   onDevelop,
   onFavorite,
+  onRename,
+  onRestore,
   onDelete,
   onImport,
   onCamera,
   notify,
+  albums,
+  onSaveCollection,
+  onDeleteCollection,
 }: LibraryViewProps) {
+  const [albumId, setAlbumId] = useState<string | null>(null);
+  const [albumFor, setAlbumFor] = useState<string[] | null>(null);
+  const [newAlbum, setNewAlbum] = useState<string | null>(null);
+  const [albumDelete, setAlbumDelete] = useState<Album | null>(null);
+  const album = albums.find((a) => a.id === albumId) ?? null;
   const [filter, setFilter] = useState<FilterKey>('all');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
@@ -194,7 +155,24 @@ export default function LibraryView({
       /* ignore */
     }
   }, [view]);
-  const [pendingDelete, setPendingDelete] = useState<PhotoRecord | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PhotoRecord[] | null>(null);
+  // select mode: tapping a frame ticks it instead of opening it; the bar at the bottom acts on the ticked ones
+  const [picked, setPicked] = useState<Set<string> | null>(null);
+  const pickedRecords = picked ? photos.filter((p) => picked.has(p.id)) : [];
+  const togglePick = (id: string) =>
+    setPicked((s) => {
+      const next = new Set(s);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  useEffect(() => {
+    if (!picked) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !document.querySelector('.modal-overlay') && setPicked(null);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [picked]);
+  const [viewIdx, setViewIdx] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -214,6 +192,7 @@ export default function LibraryView({
   const filtered = useMemo(() => {
     const search = query.trim().toLowerCase();
     return photos
+      .filter((photo) => !album || album.photoIds.includes(photo.id))
       .filter((photo) =>
         filter === 'all'
           ? true
@@ -232,15 +211,21 @@ export default function LibraryView({
       .sort((a, b) =>
         sort === 'newest' ? b.createdAt - a.createdAt : a.createdAt - b.createdAt,
       );
-  }, [photos, filter, query, sort]);
+  }, [photos, filter, query, sort, album]);
+  // after a delete (or a filter change) keep the viewer on a frame that still exists
+  useEffect(() => {
+    if (viewIdx !== null && viewIdx >= filtered.length) setViewIdx(filtered.length ? filtered.length - 1 : null);
+  }, [viewIdx, filtered.length]);
 
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     setDeleting(true);
+    const gone = pendingDelete;
     try {
-      await onDelete(pendingDelete.id);
-      notify(`${pendingDelete.name} removed from your private archive.`);
+      for (const r of gone) await onDelete(r.id);
+      notify(gone.length === 1 ? `${gone[0].name} removed.` : `${gone.length} frames removed.`, 'default', { label: 'Undo', run: () => void onRestore(gone) });
       setPendingDelete(null);
+      setPicked(null);
     } catch {
       notify('Could not remove this frame.', 'warning');
     } finally {
@@ -248,18 +233,19 @@ export default function LibraryView({
     }
   };
 
-  const exportAll = async () => {
-    if (!photos.length || exporting) return;
+  const exportAll = () => pack(photos, `delineate-archive-${new Date().toISOString().slice(0, 10)}.zip`);
+  const pack = async (list: PhotoRecord[], fileName: string) => {
+    if (!list.length || exporting) return;
     setExporting(true);
     try {
       const zip = new JSZip();
-      photos.forEach((photo, index) => {
+      list.forEach((photo, index) => {
         const name = `${pad(index + 1, 3)}-${fileSlug(photo.name)}.${extensionFor(photo)}`;
         zip.file(name, photo.blob);
       });
       const blob = await zip.generateAsync({ type: 'blob' });
-      downloadBlob(blob, `delineate-archive-${new Date().toISOString().slice(0, 10)}.zip`);
-      notify(`${photos.length} frames packed into a downloadable archive.`);
+      downloadBlob(blob, fileName);
+      notify(`${list.length} frames packed into a downloadable archive.`);
     } catch {
       notify('The archive could not be exported.', 'warning');
     } finally {
@@ -368,21 +354,79 @@ export default function LibraryView({
         </div>
       </div>
 
+      <div className="alb-strip" role="tablist" aria-label="Albums">
+        <button type="button" role="tab" aria-selected={!album} className={`alb-chip ${!album ? 'is-active' : ''}`} onClick={() => setAlbumId(null)}>
+          <span className="alb-chip-cover is-all" aria-hidden="true" />
+          <span>All photos</span>
+          <small>{photos.length}</small>
+        </button>
+        {albums.map((a) => {
+          const cover = photos.find((p) => p.id === a.coverId) ?? photos.find((p) => a.photoIds.includes(p.id));
+          const count = photos.filter((p) => a.photoIds.includes(p.id)).length;
+          return (
+            <button key={a.id} type="button" role="tab" aria-selected={albumId === a.id} className={`alb-chip ${albumId === a.id ? 'is-active' : ''}`} onClick={() => setAlbumId(a.id)}>
+              {cover ? <Thumb photo={cover} className="alb-chip-cover" /> : <span className="alb-chip-cover" aria-hidden="true" />}
+              <span>{a.name}</span>
+              <small>{count}</small>
+            </button>
+          );
+        })}
+        {newAlbum === null ? (
+          <button type="button" className="alb-chip alb-new" onClick={() => setNewAlbum('')}>
+            <FolderPlus size={14} /> New album
+          </button>
+        ) : (
+          <form
+            className="alb-new-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const name = newAlbum.trim();
+              if (!name) return setNewAlbum(null);
+              const id = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+              void onSaveCollection({ id, type: 'album', name: name.slice(0, 48), photoIds: [], createdAt: Date.now(), updatedAt: Date.now() }).then(() => setAlbumId(id));
+              setNewAlbum(null);
+              notify(`Album “${name}” created — add photos with the Album button on any frame.`);
+            }}
+          >
+            <input className="text-input" autoFocus value={newAlbum} maxLength={48} placeholder="Album name" aria-label="Album name" onChange={(e) => setNewAlbum(e.target.value)} onBlur={() => !newAlbum.trim() && setNewAlbum(null)} />
+            <button type="submit" className="button button-dark">Create</button>
+          </form>
+        )}
+        {filtered.length > 0 && (
+          <button type="button" className={`alb-chip alb-select ${picked ? 'is-active' : ''}`} onClick={() => setPicked((s) => (s ? null : new Set()))} aria-pressed={Boolean(picked)}>
+            <CheckSquare size={14} /> {picked ? 'Cancel' : 'Select'}
+          </button>
+        )}
+      </div>
+      {album && (
+        <div className="alb-head">
+          <input
+            className="alb-title"
+            value={album.name}
+            maxLength={48}
+            aria-label="Album name"
+            onChange={(e) => void onSaveCollection({ ...album, name: e.target.value, updatedAt: Date.now() })}
+          />
+          <span className="alb-count">{filtered.length} {filtered.length === 1 ? 'frame' : 'frames'}</span>
+          <button type="button" className="button button-outline" onClick={() => setAlbumDelete(album)}>
+            <Trash2 size={14} /> Delete album
+          </button>
+        </div>
+      )}
+
       {filtered.length ? (
         <div className={`archive-grid view-${view}`}>
           {filtered.map((photo, index) => (
-            <ArchiveCard
-              key={photo.id}
-              record={photo}
-              index={index}
-              onEdit={onEdit}
-              onArt={onArt}
-              onDevelop={onDevelop}
-              onFavorite={onFavorite}
-              onDelete={(record) => setPendingDelete(record)}
-            />
+            <ArchiveCard key={photo.id} record={photo} index={index} onOpen={() => (picked ? togglePick(photo.id) : setViewIdx(index))} onFavorite={onFavorite} selected={picked ? picked.has(photo.id) : undefined} />
           ))}
         </div>
+      ) : album && photos.length ? (
+        <EmptyState
+          icon={<FolderPlus size={26} />}
+          title="This album is empty"
+          body="Open All photos, then use the Album button on any frame to add it here."
+          action={<button type="button" className="button button-outline" onClick={() => setAlbumId(null)}>Show all photos</button>}
+        />
       ) : photos.length ? (
         <EmptyState
           icon={<Search size={26} />}
@@ -428,25 +472,85 @@ export default function LibraryView({
         </p>
       </div>
 
+      {viewIdx !== null && filtered[viewIdx] && (
+        <PhotoViewer
+          photos={filtered}
+          index={viewIdx}
+          onIndex={setViewIdx}
+          onClose={() => setViewIdx(null)}
+          onEdit={onEdit}
+          onArt={onArt}
+          onDevelop={onDevelop}
+          onFavorite={onFavorite}
+          onAlbum={(record) => setAlbumFor([record.id])}
+          onSave={(record) => downloadBlob(record.blob, `${fileSlug(record.name)}.${extensionFor(record)}`)}
+          onDelete={(record) => setPendingDelete([record])}
+          onRename={onRename}
+        />
+      )}
+      {picked &&
+        createPortal(
+        <div className="arc-selbar" role="toolbar" aria-label="Selected frames">
+          <span className="arc-selcount">{picked.size ? `${picked.size} selected` : 'Tap frames to select'}</span>
+          <button type="button" onClick={() => setPicked(picked.size === filtered.length ? new Set() : new Set(filtered.map((p) => p.id)))}>
+            <CheckSquare size={17} />
+            <span>{picked.size === filtered.length ? 'None' : 'All'}</span>
+          </button>
+          <button type="button" disabled={!picked.size} onClick={() => setAlbumFor(pickedRecords.map((p) => p.id))}>
+            <FolderPlus size={17} />
+            <span>Album</span>
+          </button>
+          <button type="button" disabled={!picked.size || exporting} onClick={() => void pack(pickedRecords, `delineate-${pickedRecords.length}-frames.zip`)}>
+            {exporting ? <Spinner /> : <Download size={17} />}
+            <span>Save</span>
+          </button>
+          <button type="button" className="is-danger" disabled={!picked.size} onClick={() => setPendingDelete(pickedRecords)}>
+            <Trash2 size={17} />
+            <span>Delete</span>
+          </button>
+        </div>,
+          document.querySelector('.app-shell') ?? document.body,
+        )}
+      {albumFor && <AlbumPicker photoIds={albumFor} albums={albums} onSave={onSaveCollection} onClose={() => setAlbumFor(null)} />}
+      {albumDelete && (
+        <Modal title="Delete this album?" eyebrow="Archive / Albums" onClose={() => setAlbumDelete(null)}>
+          <p className="modal-copy">
+            <strong>{albumDelete.name}</strong> will be removed. The photos in it stay in your archive.
+          </p>
+          <div className="modal-actions">
+            <button type="button" className="button button-dark" onClick={() => setAlbumDelete(null)}>Keep it</button>
+            <button
+              type="button"
+              className="button button-danger"
+              onClick={() => {
+                void onDeleteCollection(albumDelete.id);
+                setAlbumId(null);
+                setAlbumDelete(null);
+              }}
+            >
+              <Trash2 size={15} /> Delete album
+            </button>
+          </div>
+        </Modal>
+      )}
       {pendingDelete && (
         <Modal
-          title="Remove this frame?"
+          title={pendingDelete.length === 1 ? 'Remove this frame?' : `Remove ${pendingDelete.length} frames?`}
           eyebrow="Archive / Delete"
           onClose={() => !deleting && setPendingDelete(null)}
         >
           <p className="modal-copy">
-            <strong>{pendingDelete.name}</strong> will be removed from your private archive. If you
-            want to keep a copy outside the studio, download it first.
+            <strong>{pendingDelete.length === 1 ? pendingDelete[0].name : `${pendingDelete.length} frames`}</strong> will be removed from your private
+            archive. You can undo it for a few seconds afterwards; to keep a copy outside the studio, download first.
           </p>
           <div className="modal-actions">
             <button
               type="button"
               className="button button-outline"
               onClick={() =>
-                downloadBlob(
-                  pendingDelete.blob,
-                  `${fileSlug(pendingDelete.name)}.${extensionFor(pendingDelete)}`,
-                )
+                pendingDelete.length === 1
+                  ? downloadBlob(pendingDelete[0].blob, `${fileSlug(pendingDelete[0].name)}.${extensionFor(pendingDelete[0])}`)
+                  : void pack(pendingDelete, `delineate-${pendingDelete.length}-frames.zip`)
               }
             >
               <Download size={15} /> Download first
@@ -461,7 +565,7 @@ export default function LibraryView({
               disabled={deleting}
             >
               {deleting ? <Spinner /> : <Trash2 size={15} />}
-              {deleting ? 'Removing…' : 'Delete frame'}
+              {deleting ? 'Removing…' : pendingDelete.length === 1 ? 'Delete frame' : `Delete ${pendingDelete.length}`}
             </button>
           </div>
         </Modal>

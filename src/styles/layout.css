@@ -43,7 +43,7 @@
 .cl-stage { container-type: size; }
 .cl-canvas { max-height: 100cqh; }
 .dv-room { min-height: 0; height: 100%; }
-.dv-roll { margin: 0 0 14px; padding: 16px 0 18px; }
+.dv-roll { margin: 0 0 28px; padding: 16px 0 18px; } /* room for the label hanging under the strip */
 .dv-neg { width: 104px; }
 
 /* journal */
@@ -76,10 +76,16 @@
   .main-nav button { padding: 9px 12px; }
   .header-roll { display: none; }
 }
+/* 14" laptops (≈1280–1440 px): eight labelled tabs fit if the header tightens a little */
+@media (min-width: 1241px) and (max-width: 1440px) {
+  .main-nav button { gap: 5px; padding: 9px 9px; letter-spacing: 0.04em; }
+  .header-roll { display: none; }
+  .site-header { gap: 10px; }
+}
 
 /* Screen height the portrait UI actually has (the page is turned sideways under data-rot). */
 :root { --app-h: 100dvh; }
-html[data-rot] { --app-h: 100dvw; }
+html[data-rot] { --app-h: var(--rot-h); }
 
 /* Phones: ONE scroller per page (the page itself). The page header scrolls away, the stage
    stays pinned at the top at a size that leaves room, and every setting scrolls underneath it.
@@ -268,6 +274,36 @@ html[data-rot] { --app-h: 100dvw; }
 .cz-control-knobs .cz-preview i { top: 7px; left: calc(50% - 16px); width: 32px; height: 32px; border-radius: 50%; background: repeating-conic-gradient(#5a5b57 0 6deg, #d0d1cd 6deg 12deg); }
 .cz-control-knobs .cz-preview i::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #f3f3f0, #9c9d99 70%); }
 .cz-toggles { display: flex; flex-wrap: wrap; gap: 18px; }
+/* sub-tabs: one short panel at a time, so the modal never needs a long scroll */
+.cz-tabs { display: flex; flex-wrap: wrap; justify-self: start; margin-bottom: 16px; }
+.cz-tabs button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 9px; }
+.cz-panel { min-height: 300px; animation: fadeIn 200ms ease both; }
+.cz-panel .cz-section:last-child { margin-bottom: 0; }
+.cz-clicky,
+.cz-rows > div { display: grid; gap: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.cz-clicky small,
+.cz-rows small,
+.cz-note { color: var(--muted); font-size: 11px; }
+.cz-rows { display: grid; gap: 10px; }
+.cz-demo { padding: 12px 14px; border: 1px dashed var(--line-strong); border-radius: 14px; }
+.cz-sounds.is-muted { opacity: 0.55; }
+
+/* What's new: release notes scroll inside the panel so the modal keeps its size */
+.cz-news { display: grid; gap: 18px; max-height: min(56vh, 520px); padding-right: 6px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.cz-release { display: grid; gap: 12px; }
+.cz-release header { display: flex; align-items: center; gap: 10px; }
+.cz-version { padding: 3px 9px; color: var(--paper-light); border-radius: 999px; background: var(--ink); font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; }
+.cz-release h3 { margin: 0; font-family: var(--serif); font-size: 24px; font-weight: 400; line-height: 1.15; }
+.cz-release section { display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.cz-release ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.cz-release li { position: relative; padding-left: 16px; color: var(--ink-soft); font-size: 13px; line-height: 1.45; }
+.cz-release li::before { position: absolute; top: 0.55em; left: 2px; width: 6px; height: 6px; content: ''; border-radius: 50%; background: var(--accent); }
+/* unread dot on the Customise button and the What's new tab */
+.cz-dot { display: inline-block; width: 7px; height: 7px; margin-left: 2px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+.round-icon.has-news { position: relative; }
+.round-icon.has-news::after { position: absolute; top: 2px; right: 2px; width: 9px; height: 9px; content: ''; border: 2px solid var(--paper); border-radius: 50%; background: var(--accent); }
+.cz-wave { display: grid; height: 40px; place-items: center; color: var(--accent); border-radius: 9px; background: var(--paper-deep); font-family: var(--mono); font-size: 20px; }
+.cz-card.is-active .cz-wave { color: var(--paper-light); background: var(--accent); }
 
 /* More themes -------------------------------------------------------------------- */
 :root[data-theme='pastel'] {
@@ -277,10 +313,11 @@ html[data-rot] { --app-h: 100dvw; }
   --card: #fdf6fc;
   --ink: #3d3350;
   --ink-soft: #5d5072;
-  --muted: #9a8fae;
+  /* deep enough to read on the pale pink paper (was #9a8fae / #a98bd8, under 3:1) */
+  --muted: #776b8e;
   --line: rgba(61, 51, 80, 0.14);
   --line-strong: rgba(61, 51, 80, 0.28);
-  --accent: #a98bd8;
+  --accent: #8b6ccc;
   --accent-deep: #7d5fb3;
   --accent-soft: #e2d4f6;
   --olive: #7fb8a4;
@@ -315,6 +352,88 @@ html[data-rot] { --app-h: 100dvw; }
 }
 :root[data-theme='darkroom'] body { background: radial-gradient(1200px 700px at 50% -10%, rgba(255, 40, 20, 0.22), transparent 70%), var(--paper); }
 :root[data-theme='darkroom'] .ambient-grain { mix-blend-mode: screen; opacity: 0.04; }
+:root[data-theme='darkroom'] { --danger: #ff6b5a; --shadow-hard: 0 30px 80px -35px rgba(0, 0, 0, 0.95); }
+
+:root[data-theme='sage'] {
+  --paper: #e9eee2;
+  --paper-light: #f6f8f1;
+  --paper-deep: #d8e1cd;
+  --card: #f1f4ea;
+  --ink: #1f2b22;
+  --ink-soft: #3d4c40;
+  --muted: #6b7a6c;
+  --line: rgba(31, 43, 34, 0.15);
+  --line-strong: rgba(31, 43, 34, 0.3);
+  --accent: #4f7a5a;
+  --accent-deep: #355a40;
+  --accent-soft: #bcd3c0;
+  --olive: #6f8a4e;
+  --gold: #b99a4a;
+  --paper-rgb: 246 248 241;
+  --ink-rgb: 31 43 34;
+}
+:root[data-theme='sage'] body {
+  background:
+    radial-gradient(1000px 640px at 0% 0%, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(900px 600px at 100% 100%, rgba(150, 180, 140, 0.25), transparent 60%),
+    var(--paper);
+}
+
+:root[data-theme='midnight'] {
+  color-scheme: dark;
+  --paper: #0e1424;
+  --paper-light: #172036;
+  --paper-deep: #1f2a44;
+  --card: #141c30;
+  --ink: #e6ecff;
+  --ink-soft: #b9c4e4;
+  --muted: #8592b6;
+  --line: rgba(200, 214, 255, 0.13);
+  --line-strong: rgba(200, 214, 255, 0.28);
+  --accent: #7aa2ff;
+  --accent-deep: #a9c2ff;
+  --accent-soft: #263a6e;
+  --olive: #7fc4b0;
+  --olive-deep: #c4e6dc;
+  --gold: #e3c27a;
+  --danger: #ff7a7a;
+  --paper-rgb: 23 32 54;
+  --ink-rgb: 230 236 255;
+  --shadow-soft: 0 18px 50px -30px rgba(0, 0, 0, 0.9);
+  --shadow-hard: 0 30px 80px -35px rgba(0, 0, 0, 0.95);
+}
+:root[data-theme='midnight'] body {
+  background:
+    radial-gradient(1100px 640px at 15% -10%, rgba(122, 162, 255, 0.14), transparent 62%),
+    radial-gradient(900px 600px at 100% 0%, rgba(227, 194, 122, 0.07), transparent 58%),
+    var(--paper);
+}
+:root[data-theme='midnight'] .ambient-grain { mix-blend-mode: screen; opacity: 0.03; }
+
+/* high contrast: pure black on white, strong lines, for bright sun or low vision */
+:root[data-theme='mono'] {
+  --paper: #ffffff;
+  --paper-light: #ffffff;
+  --paper-deep: #ececec;
+  --card: #fafafa;
+  --ink: #000000;
+  --ink-soft: #1a1a1a;
+  --muted: #4a4a4a;
+  --line: rgba(0, 0, 0, 0.3);
+  --line-strong: rgba(0, 0, 0, 0.6);
+  --accent: #000000;
+  --accent-deep: #000000;
+  --accent-soft: #d6d6d6;
+  --olive: #2a2a2a;
+  --gold: #8a6a1a;
+  --paper-rgb: 255 255 255;
+  --ink-rgb: 0 0 0;
+}
+:root[data-theme='mono'] body { background: var(--paper); }
+:root[data-theme='mono'] .ambient-grain { opacity: 0; }
+
+/* Paper grain toggle (Customise) */
+:root[data-grain='off'] .ambient-grain { display: none; }
 
 /* Calm motion */
 :root[data-motion='calm'] *,
@@ -500,11 +619,11 @@ html[data-rot] { --app-h: 100dvw; }
 .brand:hover .brand-mark img { animation-duration: 2s; }
 
 /* Phone turned sideways in a browser that can't lock orientation: counter-rotate the page so the UI stays portrait. */
-html[data-rot] #root { position: fixed; top: 0; left: 0; width: 100dvh; height: 100dvw; overflow: hidden; transform-origin: 0 0; }
-html[data-rot='90'] #root { transform: translateY(100dvh) rotate(-90deg); }
-html[data-rot='270'] #root { transform: translateX(100dvw) rotate(90deg); }
+html[data-rot] #root { position: fixed; top: 0; left: 0; width: var(--rot-w); height: var(--rot-h); overflow: hidden; transform-origin: 0 0; }
+html[data-rot='90'] #root { transform: translateY(var(--rot-y)) rotate(-90deg) scale(var(--rot-k)); }
+html[data-rot='270'] #root { transform: translateX(var(--rot-x)) rotate(90deg) scale(var(--rot-k)); }
 html[data-rot] .app-shell { height: 100%; }
-html[data-rot] .dc-screen { max-height: 58dvw; container-type: size; }
+html[data-rot] .dc-screen { max-height: calc(var(--rot-h) * 0.58); container-type: size; }
 /* the stream itself turned with the screen, so turn the preview back to match the world */
 html[data-rot] .dc-video { inset: auto; top: 50%; left: 50%; width: 100cqh; height: 100cqw; translate: -50% -50%; }
 html[data-rot='90'] .dc-video { rotate: 90deg; }

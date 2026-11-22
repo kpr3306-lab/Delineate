@@ -8,25 +8,32 @@ import {
   Pause,
   Play,
   RotateCcw,
+  Images,
   Save,
   Shapes,
+  Shuffle,
   Sparkles,
   WandSparkles,
+  X,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FrameStyle, PhotoRecord } from '../types';
-import { applyFrame, FRAME_STYLES } from '../lib/frames';
+import { applyFrame, CAPTION_FRAMES, FRAME_STYLES } from '../lib/frames';
 import {
   DEFAULT_ART,
   PALETTES,
+  PIXEL_PALETTES,
   encodeAnimation,
   renderAnimatedFrame,
   renderArtStill,
+  type AbstractMode,
   type AnimationMode,
   type ArtSettings,
   type ArtStyle,
   type GeometricPattern,
   type PaletteKey,
+  type PixelPalette,
+  type PixelShape,
 } from '../lib/art';
 import {
   canvasToBlob,
@@ -36,12 +43,13 @@ import {
   pad,
   uid,
 } from '../lib/utils';
-import { Modal, Range, Spinner, Toggle, useObjectUrl } from './ui';
+import { Range, Spinner, Toggle, useObjectUrl } from './ui';
 
 type ArtStudioProps = {
   photos: PhotoRecord[];
   source: PhotoRecord | null;
-  onSource: (record: PhotoRecord) => void;
+  /** null closes the editor and goes back to the photo grid. */
+  onSource: (record: PhotoRecord | null) => void;
   onSave: (record: PhotoRecord) => Promise<void>;
   onImport: () => void;
   notify: (message: string, tone?: 'default' | 'warning') => void;
@@ -77,11 +85,36 @@ const STYLE_META: Record<
   },
 };
 
-const PATTERN_LABELS: Record<GeometricPattern, string> = {
-  triangles: 'Facets',
-  mosaic: 'Mosaic',
-  orbs: 'Orbs',
+const PATTERNS: { id: GeometricPattern; label: string; note: string; icon: string }[] = [
+  { id: 'triangles', label: 'Facets', note: 'Triangles cut along the edges in the photo.', icon: 'M2 2h20L2 22Z M22 2v20H2Z' },
+  { id: 'blocks', label: 'Blocks', note: 'Squares that split smaller wherever there is detail.', icon: 'M2 2h10v10H2Z M14 2h8v4h-8Z M14 8h8v4h-8Z M2 14h20v8H2Z' },
+  { id: 'mosaic', label: 'Mosaic', note: 'Hand-cut tiles set in grout.', icon: 'M3 3l8 1-1 7-7-1Z M13 3l8 1-1 8-8-1Z M3 13l7 0 1 8-8-1Z M13 14l8-1 0 8-8 0Z' },
+  { id: 'hexagons', label: 'Hexagons', note: 'A honeycomb of even cells.', icon: 'M7 2l5 3v6l-5 3-5-3V5Z M17 2l5 3v6l-5 3-5-3V5Z M12 11l5 3v6l-5 3-5-3v-6Z' },
+  { id: 'diamonds', label: 'Diamonds', note: 'Harlequin diamonds.', icon: 'M12 1l6 6-6 6-6-6Z M6 7l6 6-6 6-6-6Z M18 7l6 6-6 6-6-6Z M12 13l6 6-6 6-6-6Z' },
+  { id: 'lowpoly', label: 'Low-poly', note: 'Folded-paper triangles on a jittered mesh.', icon: 'M2 3l9 2-3 8Z M11 5l11-2-6 9Z M8 13l3-8 5 7Z M2 3l6 10-6 9Z M8 13l8-1 6 10H2Z' },
+  { id: 'glass', label: 'Glass', note: 'Stained glass: Voronoi panes with lead between them.', icon: 'M2 2h9l-2 8-7 2Z M11 2h11v7l-8 3-5-2Z M2 12l7-2 5 2 1 10H2Z M14 12l8-3v13h-7Z' },
+  { id: 'orbs', label: 'Orbs', note: 'Glossy circles, bigger where it is bright.', icon: 'M7 7m-5 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0 M17 8m-4 0a4 4 0 1 0 8 0a4 4 0 1 0-8 0 M12 17m-5 0a5 5 0 1 0 10 0a5 5 0 1 0-10 0' },
+  { id: 'halftone', label: 'Halftone', note: 'A newspaper dot screen.', icon: 'M5 5m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0 M14 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0 M5 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0 M14 14m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0 M21 21m-1 0a1 1 0 1 0 2 0a1 1 0 1 0-2 0' },
+  { id: 'engrave', label: 'Engraving', note: 'Banknote lines that swell in the shadows.', icon: 'M2 5q5-3 10 0t10 0v2q-5 3-10 0T2 7Z M2 12q5-3 10 0t10 0v3q-5 3-10 0T2 15Z M2 19q5-3 10 0t10 0v1q-5 3-10 0T2 20Z' },
+];
+/** Which settings each pattern actually uses, so the panel only shows what will change something. */
+const USES_ADAPTIVE: GeometricPattern[] = ['triangles', 'blocks', 'mosaic', 'glass', 'orbs'];
+const USES_JITTER: GeometricPattern[] = ['mosaic', 'lowpoly', 'glass', 'orbs', 'engrave'];
+const USES_SEED: GeometricPattern[] = ['mosaic', 'lowpoly', 'glass', 'orbs'];
+const LINE_LABEL: Partial<Record<GeometricPattern, string>> = {
+  triangles: 'Outlines', blocks: 'Gaps', mosaic: 'Grout', hexagons: 'Outlines', diamonds: 'Outlines', lowpoly: 'Edges', glass: 'Lead lines', orbs: 'Rims',
 };
+const PIXEL_SHAPES: { id: PixelShape; label: string }[] = [
+  { id: 'square', label: 'Square' },
+  { id: 'dot', label: 'Dots' },
+  { id: 'brick', label: 'Bricks' },
+];
+const ABSTRACT_MODES: { id: AbstractMode; label: string }[] = [
+  { id: 'swirl', label: 'Swirl' },
+  { id: 'ripple', label: 'Ripple' },
+  { id: 'kaleido', label: 'Kaleido' },
+  { id: 'marble', label: 'Marble' },
+];
 
 const MODE_LABELS: Record<AnimationMode, string> = {
   drift: 'Drift',
@@ -98,16 +131,6 @@ const GIF_MODES: Record<AnimationMode, string> = {
 function StyleIcon({ style }: { style: ArtStyle }) {
   const Icon = STYLE_META[style].icon;
   return <Icon size={17} />;
-}
-
-function SourceThumb({ photo, onClick }: { photo: PhotoRecord; onClick: () => void }) {
-  const url = useObjectUrl(photo.blob);
-  return (
-    <button type="button" className="source-thumb" onClick={onClick} title={photo.name}>
-      {url && <img src={url} alt="" />}
-      <span>{photo.name}</span>
-    </button>
-  );
 }
 
 function PickerCard({ photo, onPick }: { photo: PhotoRecord; onPick: () => void }) {
@@ -136,17 +159,15 @@ export default function ArtStudio({
 }: ArtStudioProps) {
   const [style, setStyle] = useState<ArtStyle>('pixel');
   const [frame, setFrame] = useState<FrameStyle>('none');
+  const [caption, setCaption] = useState('');
   const [shellAspect, setShellAspect] = useState(1);
   const [settings, setSettings] = useState<ArtSettings>({ ...DEFAULT_ART });
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [imageError, setImageError] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
   const [playing, setPlaying] = useState(true);
   const [busy, setBusy] = useState<'save' | 'download' | null>(null);
   const [progress, setProgress] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const sourceUrl = useObjectUrl(source?.blob);
-  const sourcePhotos = photos.slice(0, 8);
   const aspect = useMemo(() => {
     if (!source) return 1;
     return source.width / source.height;
@@ -195,13 +216,16 @@ export default function ArtStudio({
       return () => cancelAnimationFrame(animationFrame);
     }
 
-    const rendered = applyFrame(renderArtStill(image, style, settings, previewLongSide), frame);
-    canvas.width = rendered.width;
-    canvas.height = rendered.height;
-    setShellAspect(rendered.width / rendered.height);
-    context.drawImage(rendered, 0, 0);
-    return undefined;
-  }, [image, style, settings, aspect, playing, frame]);
+    // debounced: fine stained glass or engraving takes a moment, and a slider fires on every step
+    const t = window.setTimeout(() => {
+      const rendered = applyFrame(renderArtStill(image, style, settings, previewLongSide), frame, caption);
+      canvas.width = rendered.width;
+      canvas.height = rendered.height;
+      setShellAspect(rendered.width / rendered.height);
+      context.drawImage(rendered, 0, 0);
+    }, 60);
+    return () => window.clearTimeout(t);
+  }, [image, style, settings, aspect, playing, frame, caption]);
 
   const updateSettings = <K extends keyof ArtSettings>(key: K, value: ArtSettings[K]) => {
     setSettings((current) => ({ ...current, [key]: value }));
@@ -246,7 +270,7 @@ export default function ArtStudio({
       };
     }
     setProgress(0.4);
-    const canvas = applyFrame(renderArtStill(image, style, settings, 1800), frame);
+    const canvas = applyFrame(renderArtStill(image, style, settings, 1800), frame, caption);
     const blob = await canvasToBlob(canvas, 'image/png');
     setProgress(1);
     return {
@@ -301,6 +325,7 @@ export default function ArtStudio({
       };
       await onSave(record);
       notify(`${record.name} saved to your private archive.`);
+      onSource(null); // done: back to the photo grid
     } catch (error) {
       console.error(error);
       notify('The art lab could not save this piece.', 'warning');
@@ -312,7 +337,6 @@ export default function ArtStudio({
 
   const chooseSource = (record: PhotoRecord) => {
     onSource(record);
-    setPickerOpen(false);
   };
 
   if (!source) {
@@ -342,21 +366,7 @@ export default function ArtStudio({
               <button className="button button-dark" type="button" onClick={onImport}>
                 <ImagePlus size={15} /> Import a photo
               </button>
-              {photos.length > 0 && (
-                <button className="button button-outline" type="button" onClick={() => setPickerOpen(true)}>
-                  Browse the archive
-                </button>
-              )}
             </div>
-          </div>
-          <div className="art-empty-visual" aria-hidden="true">
-            <span className="art-orbit one" />
-            <span className="art-orbit two" />
-            <span className="art-orbit three" />
-            <span className="art-visual-core">
-              <Sparkles size={38} strokeWidth={1} />
-            </span>
-            <span className="art-visual-tag">PIXEL / SWIRL / FACET / LOOP</span>
           </div>
         </section>
 
@@ -364,15 +374,12 @@ export default function ArtStudio({
           <section className="art-source-section">
             <div className="section-heading">
               <div>
-                <span className="eyebrow">The contact sheet</span>
-                <h3>Choose a frame to transform</h3>
+                <span className="eyebrow">The contact sheet · {photos.length} frames</span>
+                <h3>Tap a frame to transform it</h3>
               </div>
-              <button className="text-button" type="button" onClick={() => setPickerOpen(true)}>
-                View all {photos.length} frames
-              </button>
             </div>
             <div className="art-source-grid">
-              {sourcePhotos.map((photo) => (
+              {photos.map((photo) => (
                 <PickerCard key={photo.id} photo={photo} onPick={() => chooseSource(photo)} />
               ))}
             </div>
@@ -389,16 +396,6 @@ export default function ArtStudio({
             </button>
           </div>
         )}
-
-        {pickerOpen && (
-          <Modal title="Pick a source frame" eyebrow="Art Lab / Source" wide onClose={() => setPickerOpen(false)}>
-            <div className="source-picker-grid">
-              {photos.map((photo) => (
-                <PickerCard key={photo.id} photo={photo} onPick={() => chooseSource(photo)} />
-              ))}
-            </div>
-          </Modal>
-        )}
       </div>
     );
   }
@@ -410,9 +407,21 @@ export default function ArtStudio({
           <span className="eyebrow">Art Lab / 07</span>
           <p>Turn a memory into something stranger.</p>
         </div>
-        <div className="privacy-pill">
-          <Sparkles size={12} />
-          Generated locally · Save or download
+        <div className="pr-top-actions">
+          <button type="button" className="button button-outline" onClick={() => onSource(null)}>
+            <Images size={14} /> Change photo
+          </button>
+          <button type="button" className="button button-outline" onClick={() => onSource(null)} title="Discard this piece and exit">
+            <X size={14} /> Discard
+          </button>
+          <button type="button" className="button button-outline" onClick={() => void download()} disabled={!image || busy !== null}>
+            {busy === 'download' ? <Spinner /> : <Download size={14} />}
+            {busy === 'download' ? 'Rendering…' : style === 'animated' ? 'Download GIF' : 'Download PNG'}
+          </button>
+          <button type="button" className="button button-dark" onClick={() => void save()} disabled={!image || busy !== null}>
+            {busy === 'save' ? <Spinner /> : <Save size={14} />}
+            {busy === 'save' ? 'Rendering…' : style === 'animated' ? 'Save GIF to archive' : 'Save art to archive'}
+          </button>
         </div>
       </div>
 
@@ -454,7 +463,13 @@ export default function ArtStudio({
           {style !== 'pixel' && (
             <div className="art-control-group">
               <span className="eyebrow">Color story</span>
-              <div className="palette-grid">
+              {style !== 'animated' && (
+                <div className="segmented art-segmented">
+                  <button type="button" className={settings.colorMode === 'palette' ? 'is-active' : ''} onClick={() => updateSettings('colorMode', 'palette')}>Palette</button>
+                  <button type="button" className={settings.colorMode === 'photo' ? 'is-active' : ''} onClick={() => updateSettings('colorMode', 'photo')}>Photo colours</button>
+                </div>
+              )}
+              <div className={`palette-grid ${settings.colorMode === 'photo' && style !== 'animated' ? 'is-dimmed' : ''}`}>
                 {(Object.keys(PALETTES) as PaletteKey[]).map((key) => {
                   const palette = PALETTES[key];
                   return (
@@ -462,7 +477,7 @@ export default function ArtStudio({
                       key={key}
                       type="button"
                       className={`palette-chip ${settings.palette === key ? 'is-active' : ''}`}
-                      onClick={() => updateSettings('palette', key)}
+                      onClick={() => setSettings((current) => ({ ...current, palette: key, colorMode: 'palette' }))}
                     >
                       <span
                         className="palette-swatch"
@@ -502,13 +517,48 @@ export default function ArtStudio({
                 onChange={(value) => updateSettings('dither', value)}
                 label="Ordered dither"
               />
+              <span className="eyebrow">Palette</span>
+              <div className="palette-grid">
+                {(['auto', ...Object.keys(PIXEL_PALETTES)] as PixelPalette[]).map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`palette-chip ${settings.pixelPalette === key ? 'is-active' : ''}`}
+                    onClick={() => updateSettings('pixelPalette', key)}
+                  >
+                    <span
+                      className="palette-swatch"
+                      style={{
+                        background: key === 'auto' ? 'conic-gradient(#e2566e, #f2c14e, #5f8a4e, #5b8bd9, #8d6fd1, #e2566e)' : `linear-gradient(90deg, ${PIXEL_PALETTES[key].colors.map((c, i, a) => `${c} ${(i / a.length) * 100}% ${((i + 1) / a.length) * 100}%`).join(', ')})`,
+                      }}
+                    />
+                    <span>{key === 'auto' ? 'From photo' : PIXEL_PALETTES[key].name}</span>
+                    {settings.pixelPalette === key && <Check size={11} />}
+                  </button>
+                ))}
+              </div>
+              <span className="eyebrow">Pixel shape</span>
+              <div className="segmented art-segmented">
+                {PIXEL_SHAPES.map((p) => (
+                  <button key={p.id} type="button" className={settings.pixelShape === p.id ? 'is-active' : ''} onClick={() => updateSettings('pixelShape', p.id)}>{p.label}</button>
+                ))}
+              </div>
+              <Toggle checked={settings.pixelGrid} onChange={(value) => updateSettings('pixelGrid', value)} label="Grid lines" />
             </div>
           )}
 
           {style === 'abstract' && (
             <div className="art-control-group">
+              <div className="segmented art-segmented">
+                {ABSTRACT_MODES.map((m) => (
+                  <button key={m.id} type="button" className={settings.abstractMode === m.id ? 'is-active' : ''} onClick={() => updateSettings('abstractMode', m.id)}>{m.label}</button>
+                ))}
+              </div>
+              {settings.abstractMode === 'kaleido' && (
+                <Range label="Mirrors" min={3} max={16} value={settings.segments} display={`${settings.segments}`} onChange={(value) => updateSettings('segments', value)} />
+              )}
               <Range
-                label="Swirl intensity"
+                label={settings.abstractMode === 'kaleido' ? 'Twist' : 'Intensity'}
                 min={1}
                 max={10}
                 value={settings.abstractIntensity}
@@ -525,31 +575,51 @@ export default function ArtStudio({
 
           {style === 'geometric' && (
             <div className="art-control-group">
-              <Range
-                label="Cell size"
-                min={14}
-                max={80}
-                value={settings.cellSize}
-                display={`${settings.cellSize}px`}
-                onChange={(value) => updateSettings('cellSize', value)}
-              />
-              <div className="segmented art-segmented">
-                {(Object.keys(PATTERN_LABELS) as GeometricPattern[]).map((pattern) => (
+              <span className="eyebrow">Shape</span>
+              <div className="art-patterns">
+                {PATTERNS.map((p) => (
                   <button
-                    key={pattern}
+                    key={p.id}
                     type="button"
-                    className={settings.pattern === pattern ? 'is-active' : ''}
-                    onClick={() => updateSettings('pattern', pattern)}
+                    className={settings.pattern === p.id ? 'is-active' : ''}
+                    onClick={() => updateSettings('pattern', p.id)}
+                    title={p.note}
+                    aria-pressed={settings.pattern === p.id}
                   >
-                    {PATTERN_LABELS[pattern]}
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d={p.icon} /></svg>
+                    <small>{p.label}</small>
                   </button>
                 ))}
               </div>
-              <Toggle
-                checked={settings.outlines}
-                onChange={(value) => updateSettings('outlines', value)}
-                label="Facet outlines"
+              <p className="art-mode-note">{PATTERNS.find((p) => p.id === settings.pattern)?.note}</p>
+              <Range
+                label="Detail"
+                min={10}
+                max={180}
+                value={settings.detail}
+                display={`${settings.detail} across`}
+                onChange={(value) => updateSettings('detail', value)}
               />
+              {USES_ADAPTIVE.includes(settings.pattern) && (
+                <Range label="Extra detail in busy areas" min={0} max={100} value={settings.adaptive} display={`${settings.adaptive}%`} onChange={(value) => updateSettings('adaptive', value)} />
+              )}
+              {USES_JITTER.includes(settings.pattern) && (
+                <Range label={settings.pattern === 'engrave' ? 'Wave' : 'Hand-cut'} min={0} max={100} value={settings.jitter} display={`${settings.jitter}%`} onChange={(value) => updateSettings('jitter', value)} />
+              )}
+              {LINE_LABEL[settings.pattern] && (
+                <Range label={LINE_LABEL[settings.pattern]!} min={0} max={8} step={0.5} value={settings.lineWeight} display={settings.lineWeight ? `${settings.lineWeight}` : 'Off'} onChange={(value) => updateSettings('lineWeight', value)} />
+              )}
+              {USES_SEED.includes(settings.pattern) && (
+                <button type="button" className="text-button" onClick={() => updateSettings('seed', Math.floor(Math.random() * 1e6))}>
+                  <Shuffle size={12} /> Re-cut the shapes
+                </button>
+              )}
+            </div>
+          )}
+
+          {style !== 'animated' && (
+            <div className="art-control-group">
+              <Toggle checked={settings.vignette} onChange={(value) => updateSettings('vignette', value)} label="Vignette" />
             </div>
           )}
 
@@ -604,29 +674,19 @@ export default function ArtStudio({
                   </button>
                 ))}
               </div>
+              {CAPTION_FRAMES.includes(frame) && (
+                <input
+                  className="text-input pr-caption"
+                  value={caption}
+                  maxLength={40}
+                  placeholder="Write a caption on the frame…"
+                  aria-label="Frame caption"
+                  onChange={(e) => setCaption(e.target.value)}
+                />
+              )}
             </div>
           )}
 
-          <div className="art-action-stack">
-            <button
-              className="button button-dark button-full"
-              type="button"
-              onClick={() => void save()}
-              disabled={!image || busy !== null}
-            >
-              {busy === 'save' ? <Spinner /> : <Save size={15} />}
-              {busy === 'save' ? 'Rendering…' : style === 'animated' ? 'Save GIF to archive' : 'Save art to archive'}
-            </button>
-            <button
-              className="button button-outline button-full"
-              type="button"
-              onClick={() => void download()}
-              disabled={!image || busy !== null}
-            >
-              {busy === 'download' ? <Spinner /> : <Download size={15} />}
-              {busy === 'download' ? 'Rendering…' : style === 'animated' ? 'Download GIF' : 'Download PNG'}
-            </button>
-          </div>
         </aside>
 
         <section className="art-stage">
@@ -693,54 +753,7 @@ export default function ArtStudio({
           </div>
         </section>
 
-        <aside className="art-source-rail">
-          <div className="source-rail-head">
-            <span className="eyebrow">Source frame</span>
-            <button className="text-button" type="button" onClick={() => setPickerOpen(true)}>
-              Change
-            </button>
-          </div>
-          <div className="source-preview">
-            {sourceUrl && <img src={sourceUrl} alt={source.name} />}
-            <span className="source-preview-label">SOURCE</span>
-          </div>
-          <strong className="source-preview-name">{source.name}</strong>
-          <span className="source-preview-note">{source.filterName}</span>
-
-          <div className="source-divider" />
-          <span className="eyebrow">More frames</span>
-          <div className="source-thumb-list">
-            {sourcePhotos
-              .filter((photo) => photo.id !== source.id)
-              .slice(0, 5)
-              .map((photo) => (
-                <SourceThumb key={photo.id} photo={photo} onClick={() => chooseSource(photo)} />
-              ))}
-          </div>
-          <button className="button button-outline button-full" type="button" onClick={onImport}>
-            <ImagePlus size={14} /> Import another
-          </button>
-
-          <div className="source-divider" />
-          <div className="studio-note">
-            <Sparkles size={15} />
-            <p>
-              Every result is a new file. Experiment freely — your source frame and its filter stay
-              exactly as they were.
-            </p>
-          </div>
-        </aside>
       </div>
-
-      {pickerOpen && (
-        <Modal title="Pick a source frame" eyebrow="Art Lab / Source" wide onClose={() => setPickerOpen(false)}>
-          <div className="source-picker-grid">
-            {photos.map((photo) => (
-              <PickerCard key={photo.id} photo={photo} onPick={() => chooseSource(photo)} />
-            ))}
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }

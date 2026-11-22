@@ -499,6 +499,82 @@ export function anamorphic(canvas: HTMLCanvasElement, amt: number) {
   return boxed;
 }
 
+/** Dust on the negative: specks (mostly dark, a few bright pinholes) and the odd curled hair.
+    Sizes and positions are relative to the frame, so preview and export match. */
+export function dust(canvas: HTMLCanvasElement, amt: number) {
+  if (amt <= 0) return canvas;
+  const { width: w, height: h } = canvas;
+  const u = Math.min(w, h) / 1000;
+  const ctx = canvas.getContext('2d')!;
+  ctx.save();
+  // separate seeds so specks and hairs stay put while the slider adds more
+  const rs = seeded(11);
+  const specks = Math.round(20 + 260 * amt);
+  for (let k = 0; k < specks; k += 1) {
+    const x = rs() * w;
+    const y = rs() * h;
+    const r = (0.8 + rs() ** 4 * 5) * u * 1.4;
+    const dark = rs() > 0.22;
+    const a = (0.35 + rs() * 0.5) * Math.min(1, 0.4 + amt);
+    ctx.fillStyle = dark ? `rgba(14,11,8,${a})` : `rgba(255,252,240,${a})`;
+    ctx.beginPath();
+    ctx.ellipse(x, y, r, r * (0.55 + rs() * 0.45), rs() * Math.PI, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  const rh = seeded(23);
+  const hairs = Math.round(1 + 7 * amt);
+  ctx.lineCap = 'round';
+  for (let k = 0; k < hairs; k += 1) {
+    const x = rh() * w;
+    const y = rh() * h;
+    const len = (25 + rh() * 70) * u;
+    const a0 = rh() * Math.PI * 2;
+    ctx.strokeStyle = `rgba(14,11,8,${(0.4 + rh() * 0.35) * Math.min(1, 0.4 + amt)})`;
+    ctx.lineWidth = (0.9 + rh() * 0.9) * u;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.bezierCurveTo(
+      x + Math.cos(a0) * len, y + Math.sin(a0) * len,
+      x + Math.cos(a0 + 1.6 + rh()) * len, y + Math.sin(a0 + 1.6 + rh()) * len,
+      x + Math.cos(a0 + 0.8) * len * 1.2, y + Math.sin(a0 + 0.8) * len * 1.2,
+    );
+    ctx.stroke();
+  }
+  ctx.restore();
+  return canvas;
+}
+
+/** Scratches: thin, wavering lines running the length of the film, mostly bright like a projected print. */
+export function scratches(canvas: HTMLCanvasElement, amt: number) {
+  if (amt <= 0) return canvas;
+  const { width: w, height: h } = canvas;
+  const u = Math.min(w, h) / 1000;
+  const ctx = canvas.getContext('2d')!;
+  const rand = seeded(31);
+  const count = Math.round(1 + 7 * amt);
+  ctx.save();
+  ctx.lineCap = 'round';
+  for (let k = 0; k < count; k += 1) {
+    let x = rand() * w;
+    const start = rand() < 0.5 ? 0 : rand() * h * 0.6;
+    const end = start + (0.4 + rand() * 0.6) * (h - start);
+    const bright = rand() > 0.3;
+    const a = (0.3 + rand() * 0.45) * Math.min(1, 0.35 + amt);
+    ctx.strokeStyle = bright ? `rgba(250,248,236,${a})` : `rgba(16,13,10,${a})`;
+    ctx.lineWidth = (0.6 + rand() * 1.4) * u;
+    ctx.beginPath();
+    ctx.moveTo(x, start);
+    const steps = 12;
+    for (let s = 1; s <= steps; s += 1) {
+      x += (rand() - 0.5) * 3 * u;
+      ctx.lineTo(x, start + ((end - start) * s) / steps);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+  return canvas;
+}
+
 export const FX_GROUPS: { name: string; items: { key: keyof Effects; label: string }[] }[] = [
   { name: 'Light', items: [
     { key: 'halation', label: 'Halation' }, { key: 'mist', label: 'Diffusion / mist' }, { key: 'starburst', label: 'Starburst filter' },
@@ -515,6 +591,9 @@ export const FX_GROUPS: { name: string; items: { key: keyof Effects; label: stri
   { name: 'Video & screens', items: [
     { key: 'rgbSplit', label: 'RGB split' }, { key: 'miniDv', label: 'MiniDV noise' }, { key: 'videoGrain', label: 'Moving video grain' },
     { key: 'crt', label: 'CRT screen' }, { key: 'glitch', label: 'Tape glitch' },
+  ] },
+  { name: 'Film damage', items: [
+    { key: 'dust', label: 'Dust' }, { key: 'scratches', label: 'Scratches' },
   ] },
   { name: 'Lens', items: [
     { key: 'vignette', label: 'Vignette' }, { key: 'softVignette', label: 'Soft vignette' },

@@ -6,6 +6,7 @@ import { renderFrame } from '../lib/render';
 import { canvasToBlob, clamp, loadImage, pad } from '../lib/utils';
 import { haptic, playHum, playPaper, playPour, playSlosh, playSuccess, playTick } from '../lib/audio';
 import { EmptyState, useObjectUrl } from './ui';
+import AdvancedDarkroom from './AdvancedDarkroom';
 
 type DevelopViewProps = {
   roll: PhotoRecord[];
@@ -14,7 +15,10 @@ type DevelopViewProps = {
   notify: (message: string, tone?: 'default' | 'warning') => void;
   onCamera: () => void;
   onProcess: (record: PhotoRecord) => void;
+  /** Developed photos, which the advanced darkroom can open and re-edit. */
+  library: PhotoRecord[];
 };
+const MODE_KEY = 'delineate-darkroom-mode';
 
 /* The print's journey through the darkroom. Each station first needs the print carried to it. */
 const STEPS = [
@@ -113,7 +117,22 @@ function Carry({ children, dropRef, onDrop }: { children: ReactNode; dropRef: Re
   );
 }
 
-export default function DevelopView({ roll, focusId, onSave, notify, onCamera, onProcess }: DevelopViewProps) {
+export default function DevelopView({ roll, focusId, onSave, notify, onCamera, onProcess, library }: DevelopViewProps) {
+  const [mode, setModeState] = useState<'standard' | 'advanced'>(() => {
+    try {
+      return window.localStorage.getItem(MODE_KEY) === 'advanced' ? 'advanced' : 'standard';
+    } catch {
+      return 'standard';
+    }
+  });
+  const setMode = (m: 'standard' | 'advanced') => {
+    setModeState(m);
+    try {
+      window.localStorage.setItem(MODE_KEY, m);
+    } catch {
+      /* remembered for this visit only */
+    }
+  };
   const [selectedId, setSelectedId] = useState<string | null>(focusId);
   const [step, setStep] = useState<StepId>('expose');
   const [placed, setPlaced] = useState(false); // print has reached the current station
@@ -347,6 +366,32 @@ export default function DevelopView({ roll, focusId, onSave, notify, onCamera, o
     </div>
   );
 
+  const modeSwitch = (
+    <div className="segmented dv-mode" role="tablist" aria-label="Darkroom mode">
+      <button type="button" role="tab" aria-selected={mode === 'standard'} className={mode === 'standard' ? 'is-active' : ''} onClick={() => setMode('standard')}>
+        Standard
+      </button>
+      <button type="button" role="tab" aria-selected={mode === 'advanced'} className={mode === 'advanced' ? 'is-active' : ''} onClick={() => setMode('advanced')}>
+        Advanced
+      </button>
+    </div>
+  );
+
+  if (mode === 'advanced') {
+    return (
+      <div className="develop-page page-enter">
+        <div className="page-kicker-row">
+          <div className="page-kicker">
+            <span className="eyebrow">Develop / 02 · Advanced</span>
+            <p>Curves, HSL, split toning and recipes. Originals are never changed.</p>
+          </div>
+          {modeSwitch}
+        </div>
+        <AdvancedDarkroom roll={roll} library={library} onSave={onSave} notify={notify} />
+      </div>
+    );
+  }
+
   if (!roll.length && !result) {
     return (
       <div className="develop-page page-enter">
@@ -355,6 +400,7 @@ export default function DevelopView({ roll, focusId, onSave, notify, onCamera, o
             <span className="eyebrow">Develop / 02</span>
             <p>The darkroom. Where latent images become memories.</p>
           </div>
+          {modeSwitch}
         </div>
         <EmptyState
           icon={<Camera size={26} />}
@@ -383,6 +429,7 @@ export default function DevelopView({ roll, focusId, onSave, notify, onCamera, o
           <p>The darkroom. Where latent images become memories.</p>
         </div>
         <div className="dv-skip-row">
+          {modeSwitch}
           {selected && step !== 'done' && (
             <button type="button" className="button button-outline" onClick={skipFrame}>
               <SkipForward size={14} /> Skip this frame
@@ -400,7 +447,7 @@ export default function DevelopView({ roll, focusId, onSave, notify, onCamera, o
             <Negative key={photo.id} photo={photo} index={i} active={photo.id === selectedId} onClick={() => choose(photo.id)} />
           ))}
         </div>
-        <span className="dv-roll-label">ROLL · {roll.length} NEGATIVES · TAP ONE TO PRINT</span>
+        <span className="dv-roll-label">ROLL · {roll.length} {roll.length === 1 ? 'NEGATIVE' : 'NEGATIVES'} · TAP ONE TO PRINT</span>
       </section>
 
       {!selected && !result ? (

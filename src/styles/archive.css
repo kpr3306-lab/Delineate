@@ -328,8 +328,9 @@
 .archive-kind,
 .archive-gif {
   padding: 3px 5px;
-  color: rgb(var(--paper-rgb) / 0.92);
-  border: 1px solid rgb(var(--paper-rgb) / 0.26);
+  /* always over a photo, so fixed light-on-dark rather than theme paper (which is dark in dark themes) */
+  color: rgba(250, 245, 234, 0.92);
+  border: 1px solid rgba(250, 245, 234, 0.26);
   border-radius: 2px;
   background: rgba(20, 22, 16, 0.45);
   backdrop-filter: blur(4px);
@@ -376,8 +377,8 @@
   align-items: center;
   gap: 8px;
   padding: 8px 11px;
-  color: var(--paper-light);
-  border: 1px solid rgb(var(--paper-rgb) / 0.22);
+  color: #faf5ea;
+  border: 1px solid rgba(250, 245, 234, 0.22);
   border-radius: 2px;
   background: rgba(31, 34, 26, 0.78);
   font-family: var(--mono);
@@ -395,15 +396,15 @@
 }
 
 .archive-actions button:hover {
-  color: var(--ink);
-  border-color: var(--paper-light);
-  background: var(--paper-light);
+  color: #20231d;
+  border-color: #faf5ea;
+  background: #faf5ea;
 }
 
 .archive-actions button.danger:hover {
-  color: var(--paper-light);
-  border-color: var(--danger);
-  background: var(--danger);
+  color: #faf5ea;
+  border-color: #96382f;
+  background: #96382f;
 }
 
 .archive-caption {
@@ -503,4 +504,14 @@
 .archive-note strong {
   color: var(--ink-soft);
   font-weight: 600;
+}
+
+/* card actions: a two-column tray along the bottom, clear of the heart, so five actions fit any card */
+.archive-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: end; gap: 5px; padding: 44px 10px 10px; }
+.archive-actions button { justify-content: center; min-width: 0; padding: 7px 6px; white-space: nowrap; }
+.archive-actions button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (max-width: 760px) {
+  .archive-actions { gap: 4px; padding: 40px 6px 6px; }
+  .archive-actions button { gap: 4px; padding: 6px 3px; font-size: 10px; }
+  .archive-actions button svg { width: 13px; height: 13px; }
 }

@@ -5,31 +5,69 @@ import {
   CircleHelp,
   Download,
   FlaskConical,
+  Gem,
+  HardDrive,
   Keyboard,
   LayoutGrid,
   Lock,
   Palette,
+  Accessibility,
+  SlidersHorizontal,
   Sparkles,
+  Volume2,
   Wand2,
   WifiOff,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
-import type { EditTarget, PhotoRecord } from './types';
-import { getAllPhotos, deletePhoto, savePhoto } from './lib/db';
-import { pad } from './lib/utils';
-import { haptic, isHapticsOn, isSoundOn, playTap, setHapticsOn, setSoundOn } from './lib/audio';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import type { Album, Collection, EditTarget, PhotoRecord } from './types';
+import { getAllPhotos, deletePhoto, savePhoto, getAllCollections, saveCollection, deleteCollection, getAllJournals } from './lib/db';
+import { loadImage, pad } from './lib/utils';
+import { importedRecord } from './lib/importPhoto';
+import {
+  getSoundPack, haptic, isClickyOn, isHapticsOn, isSoundOn, playTap, setClickyOn, setHapticsOn, setSoundOn, setSoundPack,
+  SOUND_PACKS, type SoundPack,
+} from './lib/audio';
 import CameraView from './components/CameraView';
-import DevelopView from './components/DevelopView';
-import ProcessView from './components/ProcessView';
-import LibraryView from './components/LibraryView';
-import JournalView from './components/JournalView';
-import CollageView from './components/CollageView';
-import ArtStudio from './components/ArtStudio';
-import { ControlsContext, Modal, Spinner, Toast, Toggle, type ControlStyle } from './components/ui';
+// Every tab but the camera loads on demand, so the first screen arrives sooner; see the idle preload below.
+const LAZY = {
+  develop: () => import('./components/DevelopView'),
+  process: () => import('./components/ProcessView'),
+  library: () => import('./components/LibraryView'),
+  journal: () => import('./components/JournalView'),
+  collage: () => import('./components/CollageView'),
+  art: () => import('./components/ArtStudio'),
+  memories: () => import('./components/memories/MemoriesView'),
+  data: () => import('./components/DataPanel'),
+};
+const DevelopView = lazy(LAZY.develop);
+const ProcessView = lazy(LAZY.process);
+const LibraryView = lazy(LAZY.library);
+const JournalView = lazy(LAZY.journal);
+const CollageView = lazy(LAZY.collage);
+const ArtStudio = lazy(LAZY.art);
+const MemoriesView = lazy(LAZY.memories);
+const DataPanel = lazy(LAZY.data);
+import { ControlsContext, Modal, Range, Spinner, Toast, Toggle, type ControlStyle, type ToastAction } from './components/ui';
+import { APP_VERSION, CHANGELOG } from './lib/changelog';
 
-type Tab = 'camera' | 'develop' | 'process' | 'archive' | 'journal' | 'collage' | 'lab';
-type Theme = 'light' | 'dark' | 'vintage' | 'pastel' | 'darkroom';
-type ToastState = { id: number; message: string; tone: 'default' | 'warning' };
+type CzTab = 'look' | 'controls' | 'sound' | 'comfort' | 'data' | 'new';
+const CZ_TABS: { id: CzTab; label: string; icon: typeof Palette }[] = [
+  { id: 'look', label: 'Look', icon: Palette },
+  { id: 'controls', label: 'Controls', icon: SlidersHorizontal },
+  { id: 'sound', label: 'Sound', icon: Volume2 },
+  { id: 'comfort', label: 'Comfort', icon: Accessibility },
+  { id: 'data', label: 'Data', icon: HardDrive },
+  { id: 'new', label: 'What’s new', icon: Sparkles },
+];
+const SEEN_KEY = 'delineate-seen-version';
+/** A tiny visual for each button-sound pack. */
+const SOUND_GLYPH: Record<SoundPack, string> = {
+  classic: '∿', retro: '▚▞', modern: '◦', typewriter: '⌨', bubble: '○', wood: '▭',
+};
+
+type Tab = 'camera' | 'develop' | 'process' | 'archive' | 'memories' | 'journal' | 'collage' | 'lab';
+type Theme = 'light' | 'dark' | 'vintage' | 'pastel' | 'darkroom' | 'sage' | 'midnight' | 'mono';
+type ToastState = { id: number; message: string; tone: 'default' | 'warning'; action?: ToastAction };
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 
 const TABS = [
@@ -37,6 +75,7 @@ const TABS = [
   { id: 'develop' as const, label: 'Develop', icon: FlaskConical },
   { id: 'process' as const, label: 'Process', icon: Wand2 },
   { id: 'archive' as const, label: 'Archive', icon: Archive },
+  { id: 'memories' as const, label: 'Memories', icon: Gem },
   { id: 'journal' as const, label: 'Journal', icon: BookHeart },
   { id: 'collage' as const, label: 'Collage', icon: LayoutGrid },
   { id: 'lab' as const, label: 'Art Lab', icon: Sparkles },
@@ -46,8 +85,11 @@ const THEMES: { id: Theme; label: string; color: string; swatch: string }[] = [
   { id: 'light', label: 'Light', color: '#f2ead9', swatch: 'linear-gradient(135deg,#f2ead9 50%,#20231d 50%)' },
   { id: 'dark', label: 'Dark', color: '#121310', swatch: 'linear-gradient(135deg,#121310 50%,#e07a4f 50%)' },
   { id: 'vintage', label: 'Vintage', color: '#e6d3ad', swatch: 'linear-gradient(135deg,#e6d3ad 50%,#7a3b1d 50%)' },
-  { id: 'pastel', label: 'Pastel', color: '#f7eef6', swatch: 'linear-gradient(135deg,#f7eef6 50%,#a98bd8 50%)' },
+  { id: 'pastel', label: 'Pastel', color: '#f7eef6', swatch: 'linear-gradient(135deg,#f7eef6 50%,#8b6ccc 50%)' },
   { id: 'darkroom', label: 'Darkroom', color: '#0d0605', swatch: 'linear-gradient(135deg,#0d0605 50%,#ff4a3a 50%)' },
+  { id: 'sage', label: 'Sage', color: '#e9eee2', swatch: 'linear-gradient(135deg,#e9eee2 50%,#4f7a5a 50%)' },
+  { id: 'midnight', label: 'Midnight', color: '#0e1424', swatch: 'linear-gradient(135deg,#0e1424 50%,#7aa2ff 50%)' },
+  { id: 'mono', label: 'Contrast', color: '#ffffff', swatch: 'linear-gradient(135deg,#ffffff 50%,#000000 50%)' },
 ];
 const ACCENTS = ['', '#c65d36', '#d93a2b', '#2f7d6d', '#3f6fd0', '#8d5bd1', '#d9a43a', '#e2568a'];
 const CONTROLS: { id: ControlStyle; label: string; note: string }[] = [
@@ -75,10 +117,11 @@ const write = (key: string, value: string) => {
 
 function GuideModal({ onClose }: { onClose: () => void }) {
   const steps = [
-    ['Camera', 'A plain, physical-feeling camera. Flip the power switch, pick a body, use the knobs (drag, scroll or tap). Mode dial → M for full manual ISO / shutter / aperture. Hold the shutter to focus, release to shoot.'],
+    ['Camera', '30 cameras in five collections — turn the dial to change collection, spin the wheel to change body. Each has its own buttons, sounds and live look. Power on, hold the shutter to focus, release to shoot; review with W / T or the arrows.'],
     ['Develop', 'Every shot lands on your roll as a negative. Print it by hand in the darkroom: expose, develop, stop, fix, wash and dry — or let the one-hour lab skip it.'],
     ['Process', 'Grade prints with film presets (Portra, CineStill, VHS…) and effects: halation, fisheye, date stamps, double exposures, borders, photo-booth strips.'],
     ['Archive', 'Your private storage. Favourite, search, download, or re-edit a processed frame — its settings are remembered.'],
+    ['Memories', 'Camera passport, a daily handful of forgotten frames to rediscover, time capsules, a gallery room, a memory wall and a printable yearbook.'],
     ['Journal', 'Scrapbook books with themed pages, photos, text, doodles and 80+ decorations. Download any book as a PDF.'],
     ['Collage & Art Lab', 'Compose multi-photo layouts, or turn a print into pixel art, swirls, facets or a looping GIF — with picture frames.'],
   ];
@@ -110,6 +153,12 @@ function GuideModal({ onClose }: { onClose: () => void }) {
           what you want to keep forever.
         </p>
       </div>
+      <p className="guide-credit">
+        Developed by <b>kpr3306</b> ·{' '}
+        <a href="https://github.com/kpr3306-lab" target="_blank" rel="noreferrer">
+          github.com/kpr3306-lab
+        </a>
+      </p>
       <div className="modal-actions">
         <button type="button" className="button button-dark" onClick={onClose}>
           Start remembering
@@ -120,8 +169,14 @@ function GuideModal({ onClose }: { onClose: () => void }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    const t = window.setTimeout(() => Object.values(LAZY).forEach((load) => void load().catch(() => undefined)), 2500);
+    return () => window.clearTimeout(t);
+  }, []);
   const [tab, setTab] = useState<Tab>('camera');
   const [photos, setPhotos] = useState<PhotoRecord[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [journalCount, setJournalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [processTarget, setProcessTarget] = useState<EditTarget | null>(null);
   const [developFocus, setDevelopFocus] = useState<string | null>(null);
@@ -132,10 +187,29 @@ export default function App() {
   const [theme, setTheme] = useState<Theme>(() => (read(THEME_KEY) as Theme) || 'light');
   const [controls, setControls] = useState<ControlStyle>(() => (read('delineate-controls') as ControlStyle) || 'modern');
   const [accent, setAccent] = useState(() => read('delineate-accent') || '');
-  const [calm, setCalm] = useState(() => read('delineate-calm') === '1');
+  // no saved choice yet → follow the device's "reduce motion" setting
+  const [calm, setCalm] = useState(() => {
+    const saved = read('delineate-calm');
+    return saved === null ? window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false : saved === '1';
+  });
+  const [grain, setGrain] = useState(() => read('delineate-grain') !== '0');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sound, setSound] = useState(isSoundOn());
   const [haptics, setHaptics] = useState(isHapticsOn());
+  const [clicky, setClicky] = useState(isClickyOn());
+  const [soundPack, setSoundPackState] = useState(getSoundPack());
+  const [czTab, setCzTab] = useState<CzTab>('look');
+  // returning users get a dot until they read this release's notes; brand-new users have nothing to catch up on
+  const [unseen, setUnseen] = useState(() => read('delineate-welcomed') !== null && read(SEEN_KEY) !== APP_VERSION);
+  useEffect(() => {
+    if (read('delineate-welcomed') === null) write(SEEN_KEY, APP_VERSION);
+  }, []);
+  useEffect(() => {
+    if (!settingsOpen || czTab !== 'new') return;
+    write(SEEN_KEY, APP_VERSION);
+    setUnseen(false);
+  }, [settingsOpen, czTab]);
+  const [demo, setDemo] = useState(60);
   const [installPrompt, setInstallPrompt] = useState<InstallPrompt | null>(null);
   const [offline, setOffline] = useState(!navigator.onLine);
   const photosRef = useRef<PhotoRecord[]>([]);
@@ -149,7 +223,8 @@ export default function App() {
     const sync = () => {
       const nav = navRef.current;
       const style = document.documentElement.style;
-      style.setProperty('--vh', `${window.innerHeight}px`);
+      // turned page (main.tsx): the portrait height it is laid out at, not the landscape window's
+      style.setProperty('--vh', document.documentElement.dataset.rot ? style.getPropertyValue('--rot-h') : `${window.innerHeight}px`);
       style.setProperty('--nav-h', nav && getComputedStyle(nav).position === 'fixed' ? `${nav.offsetHeight}px` : '0px');
     };
     sync();
@@ -170,10 +245,26 @@ export default function App() {
     photosRef.current = photos;
   }, [photos]);
 
-  const notify = useCallback((message: string, tone: 'default' | 'warning' = 'default') => {
+  // albums, capsules, walls and yearbooks
+  useEffect(() => {
+    getAllCollections().then(setCollections, (error) => console.error(error));
+    getAllJournals().then((j) => setJournalCount(j.length), () => undefined);
+  }, []);
+  const handleSaveCollection = useCallback(async (item: Collection) => {
+    setCollections((current) => [item, ...current.filter((c) => c.id !== item.id)]);
+    await saveCollection(item);
+  }, []);
+  const handleDeleteCollection = useCallback(async (id: string) => {
+    setCollections((current) => current.filter((c) => c.id !== id));
+    await deleteCollection(id);
+  }, []);
+  const albums = useMemo(() => collections.filter((c): c is Album => c.type === 'album').sort((a, b) => a.createdAt - b.createdAt), [collections]);
+
+  const notify = useCallback((message: string, tone: 'default' | 'warning' = 'default', action?: ToastAction) => {
     if (toastTimer.current) window.clearTimeout(toastTimer.current);
-    setToast({ id: Date.now(), message, tone });
-    toastTimer.current = window.setTimeout(() => setToast(null), 3800);
+    setToast({ id: Date.now(), message, tone, action });
+    // an undo-able message stays a little longer so there is time to reach the button
+    toastTimer.current = window.setTimeout(() => setToast(null), action ? 7000 : 3800);
   }, []);
 
   useEffect(() => {
@@ -203,19 +294,29 @@ export default function App() {
   // Theme, install prompt, online status, and a soft click + buzz on every button.
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEMES.find((t) => t.id === theme)!.color);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', (THEMES.find((t) => t.id === theme) ?? THEMES[0]).color);
     write(THEME_KEY, theme);
   }, [theme]);
   useEffect(() => {
     const root = document.documentElement;
     root.dataset.controls = controls;
     root.dataset.motion = calm ? 'calm' : 'full';
-    if (accent) root.style.setProperty('--accent', accent);
-    else root.style.removeProperty('--accent');
+    root.dataset.grain = grain ? 'on' : 'off';
+    write('delineate-grain', grain ? '1' : '0');
+    // derived shades mix toward the theme's ink/paper, so they read on light and dark themes alike
+    const shades: [string, string][] = [
+      ['--accent', accent],
+      ['--accent-deep', `color-mix(in srgb, ${accent} 78%, var(--ink))`],
+      ['--accent-soft', `color-mix(in srgb, ${accent} 32%, var(--paper))`],
+    ];
+    for (const [k, v] of shades) {
+      if (accent) root.style.setProperty(k, v);
+      else root.style.removeProperty(k);
+    }
     write('delineate-controls', controls);
     write('delineate-accent', accent);
     write('delineate-calm', calm ? '1' : '0');
-  }, [controls, accent, calm]);
+  }, [controls, accent, calm, grain]);
   useEffect(() => {
     const onPrompt = (e: Event) => {
       e.preventDefault();
@@ -224,7 +325,8 @@ export default function App() {
     const onOnline = () => setOffline(!navigator.onLine);
     const onTap = (e: PointerEvent) => {
       const button = (e.target as HTMLElement).closest('button');
-      if (!button || button.disabled || button.closest('.knob, .dc-shutter, .dv-expose')) return;
+      // sound-pack cards play their own preview on click instead
+      if (!button || button.disabled || button.closest('.knob, .dc-shutter, .dv-expose, .cz-sounds')) return;
       playTap();
       haptic(4);
     };
@@ -283,9 +385,26 @@ export default function App() {
       notify('That file is not an image. Try a JPG, PNG, WEBP or GIF.', 'warning');
       return;
     }
-    setProcessTarget({ blob: file, fileName: file.name });
-    setTab('process');
+    if (tab === 'process') {
+      setProcessTarget({ blob: file, fileName: file.name });
+      return;
+    }
+    // anywhere else, stay put: file the picture in the archive (and open it in the Art Lab when that's where you are)
+    const here = tab;
+    loadImage(file)
+      .then(async (img) => {
+        const record = await importedRecord(file, img);
+        await handleSave(record);
+        if (here === 'lab') setArtSource(record);
+        notify(here === 'lab' ? 'Imported and opened in the Art Lab.' : 'Imported to your archive.');
+      })
+      .catch(() => notify('That image could not be opened.', 'warning'));
   };
+
+  // the Art Lab editor closes when you leave the tab
+  useEffect(() => {
+    if (tab !== 'lab') setArtSource(null);
+  }, [tab]);
 
   const openProcess = (record: PhotoRecord) => {
     setProcessTarget({ record, blob: record.blob, fileName: record.name });
@@ -349,7 +468,18 @@ export default function App() {
               <Download size={17} />
             </button>
           )}
-          <button className="round-icon" type="button" onClick={() => setSettingsOpen(true)} title="Customise" aria-label="Customise themes, controls and sound">
+          {/* the camera puts its body description here on phones */}
+          <span id="header-cam-info" className="header-cam-info" />
+          <button
+            className={`round-icon ${unseen ? 'has-news' : ''}`}
+            type="button"
+            onClick={() => {
+              if (unseen) setCzTab('new'); // open straight onto the release notes the first time
+              setSettingsOpen(true);
+            }}
+            title={unseen ? 'Customise · new features' : 'Customise'}
+            aria-label={unseen ? 'Customise themes, controls and sound. New features to see' : 'Customise themes, controls and sound'}
+          >
             <Palette size={17} />
           </button>
           <button className="round-icon header-help" type="button" onClick={() => setGuideOpen(true)} aria-label="Open guide" title="Guide">
@@ -359,6 +489,7 @@ export default function App() {
       </header>
 
       <main className="app-main" key={tab}>
+        <Suspense fallback={<div className="app-loading"><Spinner label="Opening…" /></div>}>
         {loading ? (
           <div className="app-loading">
             <div className="loading-camera">
@@ -384,6 +515,7 @@ export default function App() {
             notify={notify}
             onCamera={() => go('camera')}
             onProcess={openProcess}
+            library={developed}
           />
         ) : tab === 'process' ? (
           <ProcessView
@@ -407,9 +539,37 @@ export default function App() {
               go('develop');
             }}
             onFavorite={(record) => void handleSave({ ...record, favorite: !record.favorite })}
+            onRename={(record, name) => void handleSave({ ...record, name })}
+            onRestore={async (records) => {
+              // straight back into storage: going through handleSave would count a restored negative as a new shot
+              for (const r of records) await savePhoto(r);
+              setPhotos((current) => [...current.filter((p) => !records.some((r) => r.id === p.id)), ...records].sort((a, b) => b.createdAt - a.createdAt));
+              notify(records.length === 1 ? `${records[0].name} is back.` : `${records.length} frames are back.`);
+            }}
             onDelete={handleDelete}
             onImport={openImport}
             onCamera={() => go('camera')}
+            notify={notify}
+            albums={albums}
+            onSaveCollection={handleSaveCollection}
+            onDeleteCollection={handleDeleteCollection}
+          />
+        ) : tab === 'memories' ? (
+          <MemoriesView
+            photos={developed}
+            allPhotos={photos}
+            collections={collections}
+            onSaveCollection={handleSaveCollection}
+            onDeleteCollection={handleDeleteCollection}
+            onSavePhoto={handleSave}
+            onUseCamera={(id) => {
+              write('delineate-skin', id);
+              go('camera');
+            }}
+            onBackup={() => {
+              setCzTab('data');
+              setSettingsOpen(true);
+            }}
             notify={notify}
           />
         ) : tab === 'journal' ? (
@@ -426,6 +586,7 @@ export default function App() {
             notify={notify}
           />
         )}
+        </Suspense>
       </main>
 
 
@@ -448,6 +609,17 @@ export default function App() {
       )}
       {settingsOpen && (
         <Modal title="Make it yours" eyebrow="Customise" wide onClose={() => setSettingsOpen(false)}>
+          <div className="segmented cz-tabs" role="tablist" aria-label="Customise sections">
+            {CZ_TABS.map((t) => (
+              <button key={t.id} type="button" role="tab" aria-selected={czTab === t.id} className={czTab === t.id ? 'is-active' : ''} onClick={() => setCzTab(t.id)}>
+                <t.icon size={13} /> {t.label}
+                {t.id === 'new' && unseen && <i className="cz-dot" aria-label="unread" />}
+              </button>
+            ))}
+          </div>
+          <div className="cz-panel" role="tabpanel" key={czTab}>
+          {czTab === 'look' && (
+          <>
           <div className="cz-section">
             <span className="eyebrow">Theme</span>
             <div className="cz-grid">
@@ -455,18 +627,6 @@ export default function App() {
                 <button key={t.id} type="button" className={`cz-card ${theme === t.id ? 'is-active' : ''}`} onClick={() => setTheme(t.id)}>
                   <span className="cz-swatch" style={{ background: t.swatch }} />
                   <strong>{t.label}</strong>
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="cz-section">
-            <span className="eyebrow">Controls</span>
-            <div className="cz-grid">
-              {CONTROLS.map((c) => (
-                <button key={c.id} type="button" className={`cz-card cz-control-${c.id} ${controls === c.id ? 'is-active' : ''}`} onClick={() => setControls(c.id)}>
-                  <span className="cz-preview" aria-hidden="true"><i /></span>
-                  <strong>{c.label}</strong>
-                  <small>{c.note}</small>
                 </button>
               ))}
             </div>
@@ -488,14 +648,112 @@ export default function App() {
               <input type="color" value={accent || '#c65d36'} onChange={(e) => setAccent(e.target.value)} aria-label="Custom accent colour" />
             </div>
           </div>
-          <div className="cz-section cz-toggles">
-            <Toggle checked={sound} onChange={(v) => { setSoundOn(v); setSound(v); }} label="Sounds" />
-            <Toggle checked={haptics} onChange={(v) => { setHapticsOn(v); setHaptics(v); if (v) navigator.vibrate?.(20); }} label="Haptics (Android)" />
-            <Toggle checked={calm} onChange={setCalm} label="Calm motion" />
+          </>
+          )}
+          {czTab === 'controls' && (
+          <div className="cz-section">
+            <span className="eyebrow">Slider style</span>
+            <div className="cz-grid">
+              {CONTROLS.map((c) => (
+                <button key={c.id} type="button" className={`cz-card cz-control-${c.id} ${controls === c.id ? 'is-active' : ''}`} onClick={() => setControls(c.id)}>
+                  <span className="cz-preview" aria-hidden="true"><i /></span>
+                  <strong>{c.label}</strong>
+                  <small>{c.note}</small>
+                </button>
+              ))}
+            </div>
+            {controls !== 'modern' && (
+              <div className="cz-clicky">
+                <Toggle checked={clicky} onChange={(v) => { setClickyOn(v); setClicky(v); }} label={controls === 'knobs' ? 'Clicky knob detents' : 'Clicky fader detents'} />
+                <small>{clicky ? 'Sliders click and buzz through 20 notches as you drag.' : 'Sliders glide silently.'}</small>
+              </div>
+            )}
+            <span className="eyebrow">Try it</span>
+            <div className="cz-demo">
+              <Range label="Demo" min={0} max={100} value={demo} onChange={setDemo} />
+            </div>
+          </div>
+          )}
+          {czTab === 'sound' && (
+          <div className="cz-section">
+            <div className="cz-toggles">
+              <Toggle checked={sound} onChange={(v) => { setSoundOn(v); setSound(v); }} label="Sounds" />
+              <Toggle checked={haptics} onChange={(v) => { setHapticsOn(v); setHaptics(v); if (v) navigator.vibrate?.(20); }} label="Haptics (Android)" />
+            </div>
+            <span className="eyebrow">Button sounds</span>
+            <div className={`cz-grid cz-sounds ${sound ? '' : 'is-muted'}`}>
+              {SOUND_PACKS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={`cz-card ${soundPack === p.id ? 'is-active' : ''}`}
+                  onClick={() => {
+                    setSoundPack(p.id);
+                    setSoundPackState(p.id);
+                    playTap(p.id);
+                    haptic(4);
+                  }}
+                >
+                  <span className="cz-wave" aria-hidden="true">{SOUND_GLYPH[p.id]}</span>
+                  <strong>{p.label}</strong>
+                  <small>{p.note}</small>
+                </button>
+              ))}
+            </div>
+            <small className="cz-note">{sound ? 'Tap a pack to hear it. Every button in the app uses it.' : 'Sounds are off. Turn them on to hear the packs.'}</small>
+          </div>
+          )}
+          {czTab === 'comfort' && (
+          <div className="cz-section">
+            <div className="cz-rows">
+              <div><Toggle checked={calm} onChange={setCalm} label="Calm motion" /><small>Turns off page turns, pulses and other animation.</small></div>
+              <div><Toggle checked={grain} onChange={setGrain} label="Paper grain" /><small>The faint film-grain texture over the whole app.</small></div>
+            </div>
+          </div>
+          )}
+          {czTab === 'data' && (
+            <Suspense fallback={<Spinner />}>
+              <DataPanel counts={{ photos: photos.length, journals: journalCount, collections: collections.length }} notify={notify} />
+            </Suspense>
+          )}
+          {czTab === 'new' && (
+          <div className="cz-news">
+            {CHANGELOG.map((r) => (
+              <article key={r.version} className="cz-release">
+                <header>
+                  <span className="cz-version">v{r.version}</span>
+                  <span className="eyebrow">{r.date}{r.version === APP_VERSION ? ' · this version' : ''}</span>
+                </header>
+                <h3>{r.title}</h3>
+                {r.areas.map((a) => (
+                  <section key={a.name}>
+                    <span className="eyebrow">{a.name}</span>
+                    <ul>
+                      {a.items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </article>
+            ))}
+          </div>
+          )}
           </div>
         </Modal>
       )}
-      {toast && <Toast key={toast.id} message={toast.message} tone={toast.tone} />}
+      {toast && (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          tone={toast.tone}
+          action={toast.action}
+          onAction={() => {
+            toast.action?.run();
+            setToast(null);
+          }}
+        />
+      )}
     </div>
     </ControlsContext.Provider>
   );

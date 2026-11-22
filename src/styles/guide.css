@@ -140,3 +140,7 @@
   font-size: 9.5px;
   line-height: 1.6;
 }
+
+.guide-credit { margin: 14px 0 0; color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-align: center; }
+.guide-credit b { color: var(--ink); font-weight: 500; }
+.guide-credit a { color: var(--accent-deep); text-decoration: underline; text-underline-offset: 3px; }

@@ -1,6 +1,6 @@
 // Delineate offline support: the app shell is cached on install, every other same-origin
 // asset (hashed JS/CSS/fonts) is cached the first time it loads. Photos never leave IndexedDB.
-const CACHE = 'delineate-v2'; // bump to replace cached icons/shell
+const CACHE = 'delineate-v6'; // bump to replace cached icons/shell
 const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/favicon-32.png', '/brand-mark.png', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', (event) => {

@@ -1,9 +1,12 @@
-import type { Effects, Look, ProcessConfig } from '../types';
+import type { CropAspect, Effects, Look, ProcessConfig } from '../types';
 import { BASE_LOOK } from './filters';
 import { applyFrame } from './frames';
 import * as fx from './fx';
 import { renderFrame } from './render';
 import { clamp } from './utils';
+import { cropFit, quarterTurns } from './crop';
+
+export { cropFit, cropView, cropFromBox } from './crop';
 
 export const BASE_EFFECTS: Effects = {
   motionBlur: 0,
@@ -12,10 +15,22 @@ export const BASE_EFFECTS: Effects = {
   fisheye: 0,
   flash: 0,
   stamp: 'none',
+  stampPos: 'br',
+  stampColor: null,
+  stampDate: null,
+  caption: '',
   doubleId: null,
   doubleMix: 0.45,
   border: 'none',
   aspect: 'original',
+  rotate: 0,
+  flip: false,
+  straighten: 0,
+  zoom: 1,
+  cropX: 0,
+  cropY: 0,
+  dust: 0,
+  scratches: 0,
   booth: false,
   boothIds: [],
   mist: 0,
@@ -209,6 +224,49 @@ function pixelPass(canvas: HTMLCanvasElement, look: Look, fisheye: number) {
   return canvas;
 }
 
+/** Sharpen (unsharp mask) then highlights / shadows, before grain and overlays so they stay untouched. */
+export function toneDetail(canvas: HTMLCanvasElement, look: Look) {
+  const hl = (look.highlights ?? 0) / 100;
+  const sd = (look.shadows ?? 0) / 100;
+  const k = ((look.sharpen ?? 0) / 100) * 1.6;
+  if (!hl && !sd && k <= 0) return canvas;
+  const { width: w, height: h } = canvas;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+  const img = ctx.getImageData(0, 0, w, h);
+  const d = img.data;
+  let soft: Uint8ClampedArray | null = null;
+  if (k > 0) {
+    const blurred = canvasOf(w, h);
+    const b = blurred.getContext('2d', { willReadFrequently: true })!;
+    b.filter = `blur(${Math.max(0.8, Math.max(w, h) / 1200)}px)`;
+    b.drawImage(canvas, 0, 0);
+    soft = b.getImageData(0, 0, w, h).data;
+  }
+  for (let i = 0; i < d.length; i += 4) {
+    let r = d[i];
+    let g = d[i + 1];
+    let b = d[i + 2];
+    if (soft) {
+      r += (r - soft[i]) * k;
+      g += (g - soft[i + 1]) * k;
+      b += (b - soft[i + 2]) * k;
+    }
+    if (hl || sd) {
+      // bell weights peaking at 1/3 (shadows) and 2/3 (highlights) luminance; pure black/white stay put
+      const l = clamp((r * 0.299 + g * 0.587 + b * 0.114) / 255, 0, 1);
+      const shift = 92 * 6.75 * l * (1 - l) * (sd * (1 - l) + hl * l);
+      r += shift;
+      g += shift;
+      b += shift;
+    }
+    d[i] = r;
+    d[i + 1] = g;
+    d[i + 2] = b;
+  }
+  ctx.putImageData(img, 0, 0);
+  return canvas;
+}
+
 function motionBlur(canvas: HTMLCanvasElement, amount: number) {
   if (amount <= 0) return canvas;
   const copy = canvasOf(canvas.width, canvas.height);
@@ -271,41 +329,174 @@ export function flash(canvas: HTMLCanvasElement, amount: number) {
   return canvas;
 }
 
-function stamp(canvas: HTMLCanvasElement, style: Effects['stamp'], date: number) {
-  if (style === 'none') return canvas;
+export const STAMP_STYLES: { id: Effects['stamp']; label: string; corner: boolean; color: string | null }[] = [
+  { id: 'none', label: 'Off', corner: false, color: null },
+  { id: 'date', label: 'Film date', corner: true, color: '#ff9a3c' },
+  { id: 'led', label: '90s LED', corner: true, color: '#ff3b2f' },
+  { id: 'lcd', label: 'Digicam', corner: true, color: '#ffd23a' },
+  { id: 'dymo', label: 'Label tape', corner: true, color: '#1b1b1b' },
+  { id: 'ink', label: 'Handwritten', corner: true, color: '#fbf7ee' },
+  { id: 'editorial', label: 'Editorial', corner: true, color: '#ffffff' },
+  { id: 'camcorder', label: 'Camcorder', corner: false, color: '#f4f4f4' },
+  { id: 'rec', label: 'REC viewfinder', corner: false, color: '#ffffff' },
+];
+
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const two = (n: number) => String(n).padStart(2, '0');
+
+/** Text spacing where the browser supports it (older Safari ignores it, which is fine). */
+function spacing(ctx: CanvasRenderingContext2D, px: number) {
+  if ('letterSpacing' in ctx) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${px}px`;
+}
+
+export function stamp(canvas: HTMLCanvasElement, e: Pick<Effects, 'stamp' | 'stampPos' | 'stampColor' | 'stampDate'>, date: number) {
+  const style = e.stamp;
+  if (!style || style === 'none') return canvas;
   const { width: w, height: h } = canvas;
   const ctx = canvas.getContext('2d')!;
-  const d = new Date(date);
+  const d = new Date(e.stampDate ?? date);
   const u = Math.min(w, h) / 100;
-  const two = (n: number) => String(n).padStart(2, '0');
+  const def = STAMP_STYLES.find((s) => s.id === style);
+  const color = e.stampColor ?? def?.color ?? '#ffffff';
+  const pos = e.stampPos ?? 'br';
+  const right = pos === 'br' || pos === 'tr';
+  const bottom = pos === 'br' || pos === 'bl';
+  const ax = right ? w - u * 5 : u * 5;
+  const ay = bottom ? h - u * 5 : u * 5;
+  const yy = two(d.getFullYear() % 100);
+  const mm = two(d.getMonth() + 1);
+  const dd = two(d.getDate());
+  const clock = `${two(d.getHours())}:${two(d.getMinutes())}`;
   ctx.save();
-  ctx.textBaseline = 'alphabetic';
+  ctx.textAlign = right ? 'right' : 'left';
+  ctx.textBaseline = bottom ? 'alphabetic' : 'top';
+
   if (style === 'date') {
-    const text = `'${two(d.getFullYear() % 100)}  ${two(d.getMonth() + 1)}  ${two(d.getDate())}`;
     ctx.font = `700 ${u * 5.4}px "DM Mono", "Courier New", monospace`;
-    ctx.textAlign = 'right';
-    ctx.shadowColor = 'rgba(255,120,30,0.9)';
+    ctx.shadowColor = color;
     ctx.shadowBlur = u * 1.6;
-    ctx.fillStyle = '#ff9a3c';
-    ctx.fillText(text, w - u * 5, h - u * 5);
-  } else {
-    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    ctx.fillStyle = color;
+    ctx.fillText(`'${yy}  ${mm}  ${dd}`, ax, ay);
+  } else if (style === 'led') {
+    // 90s compact: month day 'year, bolder and redder, with a hot glow
+    const text = `${mm} ${dd} '${yy}`;
+    ctx.font = `800 ${u * 5}px "DM Mono", "Courier New", monospace`;
+    spacing(ctx, u * 0.8);
+    ctx.shadowColor = color;
+    ctx.shadowBlur = u * 2.4;
+    ctx.fillStyle = color;
+    ctx.fillText(text, ax, ay);
+    ctx.shadowBlur = u * 0.6;
+    ctx.fillText(text, ax, ay);
+  } else if (style === 'lcd') {
+    // early-2000s digicam: date + time, yellow with a dark outline
+    const text = `${d.getFullYear()}.${mm}.${dd}  ${clock}`;
+    ctx.font = `600 ${u * 4.2}px "DM Mono", "Courier New", monospace`;
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = u * 0.9;
+    ctx.strokeStyle = 'rgba(0,0,0,0.75)';
+    ctx.strokeText(text, ax, ay);
+    ctx.fillStyle = color;
+    ctx.fillText(text, ax, ay);
+  } else if (style === 'dymo') {
+    // embossed label-maker tape, slightly crooked
+    const text = `${dd} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    ctx.font = `700 ${u * 3.8}px "DM Mono", "Courier New", monospace`;
+    spacing(ctx, u * 0.6);
+    const tapeW = ctx.measureText(text).width + u * 5;
+    const th = u * 6.6;
+    const x = right ? ax - tapeW : ax;
+    const y = bottom ? ay - th : ay;
+    ctx.translate(x + tapeW / 2, y + th / 2);
+    ctx.rotate(right === bottom ? -0.035 : 0.035);
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = u;
+    ctx.shadowOffsetY = u * 0.3;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(-tapeW / 2, -th / 2, tapeW, th, u * 0.8);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillText(text, 0, u * 0.25);
+    ctx.fillStyle = '#f6f4ee';
+    ctx.fillText(text, 0, 0);
+  } else if (style === 'ink') {
+    // paint-pen date, written by hand on the print
+    ctx.font = `${u * 6}px "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive`;
+    ctx.translate(ax, ay);
+    ctx.rotate(-0.06);
+    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur = u * 0.8;
+    ctx.fillStyle = color;
+    ctx.fillText(`${MONTHS_LONG[d.getMonth()].slice(0, 3)} ${d.getDate()}, ${d.getFullYear()}`, 0, 0);
+  } else if (style === 'editorial') {
+    ctx.font = `${u * 3.4}px "Instrument Serif", Georgia, serif`;
+    spacing(ctx, u * 0.9);
+    ctx.shadowColor = 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur = u * 1.2;
+    ctx.fillStyle = color;
+    ctx.fillText(`${MONTHS_LONG[d.getMonth()].toUpperCase()} ${d.getDate()}, ${d.getFullYear()}`, ax, ay);
+  } else if (style === 'camcorder') {
     const hours = d.getHours();
+    ctx.textBaseline = 'alphabetic';
     ctx.font = `600 ${u * 5}px "DM Mono", "Courier New", monospace`;
     ctx.shadowColor = 'rgba(0,0,0,0.85)';
     ctx.shadowOffsetX = u * 0.35;
     ctx.shadowOffsetY = u * 0.35;
-    ctx.fillStyle = '#f4f4f4';
+    ctx.fillStyle = color;
     ctx.textAlign = 'left';
     ctx.fillText('PLAY ▶', u * 5, u * 10);
     ctx.fillText(`${hours >= 12 ? 'PM' : 'AM'} ${(hours % 12) || 12}:${two(d.getMinutes())}`, u * 5, h - u * 12);
-    ctx.fillText(`${months[d.getMonth()]}. ${two(d.getDate())} ${d.getFullYear()}`, u * 5, h - u * 5);
+    ctx.fillText(`${MONTHS[d.getMonth()]}. ${dd} ${d.getFullYear()}`, u * 5, h - u * 5);
     ctx.textAlign = 'right';
     ctx.fillText('SP 0:00:12', w - u * 5, u * 10);
     ctx.fillStyle = '#ff3b30';
     ctx.beginPath();
     ctx.arc(w - u * 8, h - u * 7, u * 1.6, 0, Math.PI * 2);
     ctx.fill();
+  } else if (style === 'rec') {
+    // video viewfinder: corner brackets, REC, battery, timecode and date
+    ctx.textBaseline = 'middle';
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = u * 0.8;
+    ctx.lineWidth = Math.max(1, u * 0.45);
+    const m = u * 4;
+    const arm = u * 7;
+    for (const [cx, cy, sx, sy] of [[m, m, 1, 1], [w - m, m, -1, 1], [m, h - m, 1, -1], [w - m, h - m, -1, -1]]) {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + sy * arm);
+      ctx.lineTo(cx, cy);
+      ctx.lineTo(cx + sx * arm, cy);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.moveTo(w / 2 - u * 2.5, h / 2);
+    ctx.lineTo(w / 2 + u * 2.5, h / 2);
+    ctx.moveTo(w / 2, h / 2 - u * 2.5);
+    ctx.lineTo(w / 2, h / 2 + u * 2.5);
+    ctx.stroke();
+    ctx.font = `600 ${u * 4}px "DM Mono", "Courier New", monospace`;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ff3b30';
+    ctx.beginPath();
+    ctx.arc(m + u * 4.5, m + u * 5, u * 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = color;
+    ctx.fillText('REC', m + u * 7.5, m + u * 5);
+    const bx = w - m - u * 13;
+    const by = m + u * 3.3;
+    ctx.strokeRect(bx, by, u * 8, u * 3.4);
+    ctx.fillRect(bx + u * 8, by + u * 0.9, u * 0.8, u * 1.6);
+    ctx.fillRect(bx + u * 0.8, by + u * 0.8, u * 4.6, u * 1.8);
+    ctx.fillText(`TC ${clock}:${two(d.getSeconds())}:00`, m + u * 3, h - m - u * 5);
+    ctx.textAlign = 'right';
+    ctx.fillText(`${MONTHS[d.getMonth()]} ${dd} ${d.getFullYear()}`, w - m - u * 3, h - m - u * 5);
   }
   ctx.restore();
   return canvas;
@@ -317,6 +508,42 @@ function drawCover(ctx: CanvasRenderingContext2D, img: Source, w: number, h: num
   ctx.drawImage(img, (w - sw * scale) / 2, (h - sh * scale) / 2, sw * scale, sh * scale);
 }
 
+
+function cropAspect(aspect: CropAspect, rw: number, rh: number, ratio?: number) {
+  const wide = rw >= rh;
+  if (aspect === 'free' && ratio && ratio > 0) return ratio;
+  if (aspect === '1:1') return 1;
+  if (aspect === '4:3') return wide ? 4 / 3 : 3 / 4;
+  if (aspect === '16:9') return wide ? 16 / 9 : 9 / 16;
+  if (aspect === '4:5') return 4 / 5;
+  if (aspect === '2.39') return 2.39;
+  return rw / rh;
+}
+
+/** Rotate, flip, straighten, zoom and pan the photo into a w×h frame. */
+function cropTo(img: Source, e: Effects, w: number, h: number) {
+  const [sw, sh] = dims(img);
+  const { t, scale, slackX, slackY } = cropFit(sw, sh, e, w, h);
+  const out = canvasOf(w, h);
+  const ctx = out.getContext('2d')!;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.translate(w / 2, h / 2);
+  ctx.rotate(t);
+  ctx.translate(-clamp(e.cropX, -1, 1) * slackX, -clamp(e.cropY, -1, 1) * slackY);
+  ctx.scale(scale, scale);
+  if (e.flip) ctx.scale(-1, 1);
+  ctx.rotate((quarterTurns(e.rotate) * Math.PI) / 2);
+  ctx.drawImage(img, -sw / 2, -sh / 2);
+  return out;
+}
+
+/** Output size for a photo at this long side, after crop and rotation. */
+export function processedAspect(img: Source, e: Effects) {
+  const [sw, sh] = dims(img);
+  const [rw, rh] = quarterTurns(e.rotate) % 2 ? [sh, sw] : [sw, sh];
+  return e.anamorphic > 0 ? 2.39 : cropAspect(e.aspect, rw, rh, e.cropRatio);
+}
+
 /** One image through look + effects, without frame or booth. */
 function processSingle(
   img: Source,
@@ -324,28 +551,26 @@ function processSingle(
   longSide: number,
   aspectOverride?: number,
   double?: Source | null,
+  crop = true,
 ) {
-  const [sw, sh] = dims(img);
   const e = cfg.effects;
-  const aspect =
-    aspectOverride ??
-    (e.anamorphic > 0 ? 2.39 : e.aspect === '1:1' ? 1 : e.aspect === '4:3' ? (sw >= sh ? 4 / 3 : 3 / 4) : sw / sh);
+  const aspect = aspectOverride ?? processedAspect(img, e);
   const w = aspect >= 1 ? longSide : Math.round(longSide * aspect);
   const h = aspect >= 1 ? Math.round(longSide / aspect) : longSide;
 
-  let base: Source = img;
+  const base = crop ? cropTo(img, e, w, h) : canvasOf(w, h);
+  if (!crop) drawCover(base.getContext('2d')!, img, w, h);
   if (double && e.doubleMix > 0) {
-    const mix = canvasOf(w, h);
-    const m = mix.getContext('2d')!;
-    drawCover(m, img, w, h);
+    const m = base.getContext('2d')!;
+    m.save();
     m.globalCompositeOperation = 'screen';
     m.globalAlpha = clamp(e.doubleMix, 0, 1);
     drawCover(m, double, w, h);
-    base = mix;
+    m.restore();
   }
+  toneDetail(base, cfg.look);
   const look = { ...cfg.look, vignette: clamp(cfg.look.vignette + e.vignette, 0, 1) };
-  const [bw, bh] = dims(base);
-  let canvas = renderFrame(base, bw, bh, w, h, look);
+  let canvas = renderFrame(base, w, h, w, h, look);
   canvas = fx.colorPass(canvas, e);
   canvas = pixelPass(canvas, look, e.fisheye);
   canvas = motionBlur(canvas, e.motionBlur);
@@ -362,6 +587,8 @@ function processSingle(
   canvas = fx.miniDv(canvas, e.miniDv);
   canvas = fx.glitch(canvas, e.glitch);
   canvas = fx.videoGrain(canvas, e.videoGrain);
+  canvas = fx.dust(canvas, e.dust);
+  canvas = fx.scratches(canvas, e.scratches);
   canvas = fx.crt(canvas, e.crt);
   canvas = fx.gateWeave(canvas, e.gateWeave);
   canvas = fx.anamorphic(canvas, e.anamorphic);
@@ -386,7 +613,8 @@ export function renderProcessed(
     ctx.fillStyle = '#fbf8f1';
     ctx.fillRect(0, 0, sheet.width, sheet.height);
     shots.forEach((shot, i) => {
-      const frame = stamp(processSingle(shot, cfg, cell, 1, null), e.stamp, opts.date);
+      // only the photo being edited carries its crop; the other booth frames are centred
+      const frame = stamp(processSingle(shot, cfg, cell, 1, null, i === 0), e, opts.date);
       ctx.drawImage(frame, gap + (i % 2) * (cell + gap), gap + Math.floor(i / 2) * (cell + gap));
     });
     ctx.fillStyle = '#2a2622';
@@ -395,8 +623,8 @@ export function renderProcessed(
     ctx.fillText('Delineate · Photo Booth', sheet.width / 2, sheet.height - foot * 0.52);
     ctx.font = `${Math.round(foot * 0.16)}px "DM Mono", monospace`;
     ctx.fillText(new Date(opts.date).toDateString().toUpperCase(), sheet.width / 2, sheet.height - foot * 0.2);
-    return applyFrame(sheet, e.border);
+    return applyFrame(sheet, e.border, e.caption, opts.date);
   }
   const single = processSingle(img, cfg, opts.longSide, undefined, opts.double);
-  return applyFrame(stamp(single, e.stamp, opts.date), e.border);
+  return applyFrame(stamp(single, e, opts.date), e.border, e.caption, opts.date);
 }

@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Copy,
   Download,
+  Image as ImageIcon,
   ImagePlus,
   LayoutTemplate,
   MousePointer2,
@@ -17,6 +18,7 @@ import {
   Trash2,
   Type,
   Undo2,
+  Upload,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
@@ -25,9 +27,9 @@ import type { JItem, JPage, JournalBook, PaperKind, PhotoRecord } from '../types
 import { deleteJournal, getAllJournals, saveJournal } from '../lib/db';
 import { buildTemplate, coverItems, DECO_CATS, DECOS, decoUrl, getDeco, getTheme, PAGE_H, PAGE_W, TEMPLATES, THEMES } from '../lib/decos';
 import { doodlePath, exportBookPdf, FONT_FAMILY, paperCss } from '../lib/journalRender';
-import { downloadBlob, fileSlug, formatDate, uid } from '../lib/utils';
+import { canvasToBlob, downloadBlob, fileSlug, formatDate, loadImage, uid } from '../lib/utils';
 import { haptic, playFlip, playPop, playSuccess } from '../lib/audio';
-import { Modal, PhotoPicker, Range, Spinner, Thumb } from './ui';
+import { Modal, PhotoPicker, Range, Spinner, Thumb, useObjectUrl } from './ui';
 
 type JournalViewProps = {
   photos: PhotoRecord[];
@@ -35,9 +37,38 @@ type JournalViewProps = {
 };
 
 const SWATCHES = ['#20231d', '#ffffff', '#f2ead9', '#d8c3a0', '#fff4d6', '#fde8ec', '#f4f1ff', '#e4efe6', '#1f2a4a', '#c65d36', '#e2566e', '#f2c14e', '#5b8bd9', '#5f8a4e', '#7a5a3a', '#8d6fd1'];
-const PAPERS: PaperKind[] = ['plain', 'lined', 'grid', 'dots', 'kraft', 'watercolor'];
+const PAPERS: PaperKind[] = ['plain', 'lined', 'grid', 'dots', 'kraft', 'watercolor', 'gingham', 'parchment', 'newsprint', 'linen', 'blueprint'];
+const PHOTO_STYLES = ['plain', 'polaroid', 'tape', 'round', 'circle', 'film', 'stamp', 'shadow'] as const;
 
 type DragMode = 'move' | 'resize' | 'rotate';
+
+/** Uploaded pictures are shrunk before they go into the journal so books stay small in storage. */
+async function shrinkImage(blob: Blob, longSide = 1800) {
+  const img = await loadImage(blob);
+  const k = Math.min(1, longSide / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(img.naturalWidth * k));
+  c.height = Math.max(1, Math.round(img.naturalHeight * k));
+  c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+  return canvasToBlob(c, 'image/jpeg', 0.88);
+}
+
+/** A page's background photo, washed with the page colour so writing on top stays readable. */
+function PageBackdrop({ page }: { page: JPage }) {
+  const url = useObjectUrl(page.bgPhoto);
+  if (!url) return null;
+  return (
+    <>
+      <img className="jr-page-bg" src={url} alt="" draggable={false} />
+      {(page.bgFade ?? 0) > 0 && <span className="jr-page-wash" style={{ background: page.bg, opacity: page.bgFade }} />}
+    </>
+  );
+}
+
+function BlobImg({ blob, className }: { blob?: Blob; className?: string }) {
+  const url = useObjectUrl(blob);
+  return url ? <img className={className} src={url} alt="" draggable={false} /> : null;
+}
 
 function ItemView({ item, photo }: { item: JItem; photo?: PhotoRecord }) {
   if (item.type === 'text') {
@@ -80,6 +111,7 @@ function PageView({
 }) {
   return (
     <div className="jr-page" style={paperCss(page.paper, page.bg)}>
+      <PageBackdrop page={page} />
       {page.items.map((item) => (
         <div
           key={item.id}
@@ -137,7 +169,8 @@ export default function JournalView({ photos, notify }: JournalViewProps) {
   const [tool, setTool] = useState<'select' | 'doodle'>('select');
   const [pen, setPen] = useState({ color: '#20231d', width: 4, alpha: 1 });
   const [drawing, setDrawing] = useState<number[] | null>(null);
-  const [modal, setModal] = useState<null | 'new' | 'deco' | 'templates' | 'photo-add' | 'photo-swap' | 'delete'>(null);
+  const [modal, setModal] = useState<null | 'new' | 'deco' | 'templates' | 'photo-add' | 'photo-swap' | 'bg-photo' | 'restyle' | 'delete'>(null);
+  const bgFileRef = useRef<HTMLInputElement>(null);
   const [decoCat, setDecoCat] = useState(DECO_CATS[0]);
   const [newTitle, setNewTitle] = useState('');
   const [newTheme, setNewTheme] = useState(THEMES[0].id);
@@ -537,6 +570,27 @@ export default function JournalView({ photos, notify }: JournalViewProps) {
   };
   const duplicateSelected = () => selected && addItem({ ...selected, id: uid(), x: selected.x + 20, y: selected.y + 20 });
 
+  /** Page background photo; on the first page this is the book's cover (it also shows on the bookshelf). */
+  const setPagePhoto = (blob?: Blob) => {
+    updatePage((p) => ({ ...p, bgPhoto: blob, bgFade: blob ? (p.bgFade ?? 0.1) : p.bgFade }));
+    playPop();
+  };
+  const uploadPagePhoto = async (file?: File) => {
+    if (!file) return;
+    try {
+      setPagePhoto(await shrinkImage(file));
+    } catch {
+      notify('That picture could not be opened.', 'warning');
+    }
+  };
+  /** Re-theme the whole book: cover, every page's colour and paper; items stay where they are. */
+  const restyleBook = (themeId: string) => {
+    const t = getTheme(themeId);
+    updateBook((b) => ({ ...b, themeId: t.id, cover: t.cover, pages: b.pages.map((p) => ({ ...p, bg: t.bg, paper: t.paper })) }));
+    setModal(null);
+    playFlip();
+  };
+
   /* Shelf --------------------------------------------------------------------- */
   if (!book) {
     return (
@@ -570,12 +624,13 @@ export default function JournalView({ photos, notify }: JournalViewProps) {
                   }}
                 >
                   <span className="jr-book-spine" />
-                  <span className="jr-book-cover">
+                  <span className={`jr-book-cover ${b.pages[0]?.bgPhoto ? 'has-photo' : ''}`}>
+                    <BlobImg blob={b.pages[0]?.bgPhoto} className="jr-book-photo" />
                     <span className="jr-book-label">
                       <strong style={{ fontFamily: FONT_FAMILY[t.font] }}>{b.title}</strong>
                       <small>{t.name}</small>
                     </span>
-                    <img src={decoUrl(t.decos[0], getDeco(t.decos[0]).color)} alt="" className="jr-book-deco" />
+                    {!b.pages[0]?.bgPhoto && <img src={decoUrl(t.decos[0], getDeco(t.decos[0]).color)} alt="" className="jr-book-deco" />}
                   </span>
                   <span className="jr-book-meta">
                     {b.pages.length} pages · {formatDate(b.updatedAt)}
@@ -800,7 +855,7 @@ export default function JournalView({ photos, notify }: JournalViewProps) {
                     <ImagePlus size={14} /> {selected.photoId ? 'Change photo' : 'Choose photo'}
                   </button>
                   <div className="segmented jr-wrap">
-                    {(['plain', 'polaroid', 'tape', 'round', 'circle'] as const).map((s) => (
+                    {PHOTO_STYLES.map((s) => (
                       <button key={s} type="button" className={selected.style === s ? 'is-active' : ''} onClick={() => updateItem(selected.id, { style: s })}>{s}</button>
                     ))}
                   </div>
@@ -824,6 +879,40 @@ export default function JournalView({ photos, notify }: JournalViewProps) {
             </div>
           ) : (
             <div className="jr-panel">
+              <span className="eyebrow"><ImageIcon size={12} /> {pageIndex === 0 ? 'Cover photo' : 'Background photo'}</span>
+              {page!.bgPhoto ? (
+                <>
+                  <div className="jr-bgphoto">
+                    <BlobImg blob={page!.bgPhoto} className="jr-bgphoto-thumb" />
+                    <div className="jr-bgphoto-actions">
+                      <button type="button" className="button button-outline" onClick={() => bgFileRef.current?.click()}><Upload size={13} /> Replace</button>
+                      <button type="button" className="button button-outline" onClick={() => setModal('bg-photo')}><ImagePlus size={13} /> Archive</button>
+                      <button type="button" className="button button-outline" onClick={() => setPagePhoto(undefined)}><Trash2 size={13} /> Remove</button>
+                    </div>
+                  </div>
+                  <Range label="Fade into page colour" min={0} max={0.9} step={0.01} value={page!.bgFade ?? 0} display={`${Math.round((page!.bgFade ?? 0) * 100)}%`} onChange={(v) => updatePage((p) => ({ ...p, bgFade: v }), false)} />
+                </>
+              ) : (
+                <div className="jr-bgphoto-empty">
+                  <button type="button" className="jr-bgphoto-drop" onClick={() => bgFileRef.current?.click()}>
+                    <Upload size={16} />
+                    <span>{pageIndex === 0 ? 'Upload your own cover picture' : 'Upload a picture for this page'}</span>
+                  </button>
+                  <button type="button" className="text-button" onClick={() => setModal('bg-photo')}>or pick one from the archive</button>
+                </div>
+              )}
+              {pageIndex === 0 && <p className="jr-hint">The cover photo also shows on your bookshelf. Add a text or tag on top for the title.</p>}
+              <input
+                ref={bgFileRef}
+                type="file"
+                accept="image/*"
+                className="visually-hidden"
+                aria-label="Upload a page picture"
+                onChange={(e) => {
+                  void uploadPagePhoto(e.target.files?.[0]);
+                  e.target.value = ''; // picking the same file again should still fire
+                }}
+              />
               <span className="eyebrow"><Palette size={12} /> Page</span>
               <div className="jr-swatches">
                 {SWATCHES.map((c) => (
@@ -847,6 +936,7 @@ export default function JournalView({ photos, notify }: JournalViewProps) {
                 ))}
               </div>
               <div className="jr-page-actions">
+                <button type="button" className="button button-outline" onClick={() => setModal('restyle')}><BookOpen size={14} /> Book style</button>
                 <button type="button" className="button button-outline" onClick={() => setModal('templates')}><LayoutTemplate size={14} /> Layouts</button>
                 <button type="button" className="button button-outline" onClick={() => addPage(true)}><Copy size={14} /> Duplicate</button>
                 <button type="button" className="button button-outline" onClick={() => movePage(-1)} disabled={pageIndex === 0}><ChevronLeft size={14} /> Move</button>
@@ -894,12 +984,34 @@ export default function JournalView({ photos, notify }: JournalViewProps) {
           </div>
         </Modal>
       )}
-      {(modal === 'photo-add' || modal === 'photo-swap') && (
+      {modal === 'restyle' && (
+        <Modal title="Book style" eyebrow="Restyle every page" wide onClose={() => setModal(null)}>
+          <p className="modal-copy">Changes the cover and every page’s colour and paper. Your photos, words and stickers stay put. (Undo with Ctrl+Z.)</p>
+          <div className="jr-theme-grid">
+            {THEMES.map((t) => (
+              <button key={t.id} type="button" className={`jr-theme ${book.themeId === t.id ? 'is-active' : ''}`} onClick={() => restyleBook(t.id)}>
+                <span className="jr-theme-preview" style={paperCss(t.paper, t.bg)}>
+                  <span className="jr-theme-cover" style={{ background: t.cover }} />
+                  {t.decos.slice(0, 3).map((d, i) => (
+                    <img key={d} src={decoUrl(d, getDeco(d).color)} alt="" style={{ left: `${30 + i * 22}%`, top: `${20 + (i % 2) * 34}%` }} />
+                  ))}
+                </span>
+                <strong style={{ fontFamily: FONT_FAMILY[t.font] }}>{t.name}</strong>
+                <small>{t.note}</small>
+              </button>
+            ))}
+          </div>
+        </Modal>
+      )}
+      {(modal === 'photo-add' || modal === 'photo-swap' || modal === 'bg-photo') && (
         <PhotoPicker
           photos={photos}
           onPick={(id) => {
             if (modal === 'photo-add') addPhoto(id);
-            else if (selected) {
+            else if (modal === 'bg-photo') {
+              setPagePhoto(photoMap.get(id)?.blob);
+              setModal(null);
+            } else if (selected) {
               updateItem(selected.id, { photoId: id });
               setModal(null);
             }
