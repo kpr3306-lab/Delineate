@@ -118,6 +118,7 @@
 
 .dc-shutter {
   position: relative;
+  flex: none; /* never squeezed into an oval by a long wordmark */
   width: 66px;
   height: 66px;
   padding: 7px;

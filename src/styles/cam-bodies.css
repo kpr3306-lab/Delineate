@@ -374,3 +374,7 @@
   .dc-full .dc-wordmark strong { font-size: 16px; }
   .dc-full .skin-minimal .dc-wordmark strong { letter-spacing: 0.12em; }
 }
+/* small phones: Modern Minimal's spaced-out wordmark gives way so the shutter keeps its full circle */
+@media (min-width: 351px) and (max-width: 380px) {
+  .dc-full .skin-minimal .dc-wordmark strong { letter-spacing: 0.2em; }
+}
