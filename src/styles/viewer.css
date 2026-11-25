@@ -183,3 +183,18 @@
 /* notifications float above the phone tab bar (its height is 0 when the bar isn't fixed) */
 .toast { bottom: calc(var(--nav-h, 0px) + 18px); }
 .app-shell:has(.arc-selbar) .toast { bottom: calc(var(--nav-h, 0px) + 92px); } /* and above the select bar */
+
+/* ════ Pill ribbons on phones (archive filters + views, Customise tabs) ══════════════════════════
+   Wrap instead of scrolling or clipping; pills grow so every row sits flush with the ribbon's edge. */
+@media (max-width: 760px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
+  .archive-filters,
+  .archive-views,
+  .cz-tabs { display: flex; flex-wrap: wrap; justify-self: stretch; gap: 3px; width: 100%; padding: 3px; overflow: visible; border-radius: 20px; }
+  .archive-filters button,
+  .archive-views button,
+  .cz-tabs button { flex: 1 1 auto; justify-content: center; min-width: 0; }
+}
+/* the six display modes split evenly, three a row, instead of leaving "List" alone on a second row */
+@media (max-width: 480px) {
+  .archive-views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
