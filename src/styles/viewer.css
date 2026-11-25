@@ -238,6 +238,8 @@
 }
 @media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .studio-shell > :not(.studio-switch) { flex: none; min-height: auto; overflow: visible; }
+  /* phones: one scroller per page — here the shell (switch + Studio page) scrolls as a whole */
+  .app-main > .studio-shell { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
   .studio-switch { display: flex; align-self: stretch; width: 100%; margin-bottom: 8px; }
   .studio-switch button { flex: 1; justify-content: center; }
   /* five actions: two even rows */
