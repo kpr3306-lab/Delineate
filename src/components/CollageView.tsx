@@ -11,7 +11,9 @@ import { Modal, PhotoPicker, Range, Thumb, Toggle } from './ui';
 type CollageViewProps = {
   photos: PhotoRecord[];
   onSave: (record: PhotoRecord) => Promise<void>;
-  notify: (message: string, tone?: 'default' | 'warning') => void;
+  notify: (message: string, tone?: 'default' | 'warning', action?: { label: string; run: () => void }) => void;
+  /** Open a saved collage in Studio › Frames. */
+  onFrame?: (record: PhotoRecord) => void;
 };
 
 type Rect = [number, number, number, number, number?]; // x, y, w, h, rotation
@@ -351,7 +353,7 @@ function renderCollage(
   return canvas;
 }
 
-export default function CollageView({ photos, onSave, notify }: CollageViewProps) {
+export default function CollageView({ photos, onSave, notify, onFrame }: CollageViewProps) {
   const [cfg, setCfg] = useState<Cfg>(() => ({
     layout: 'grid4',
     ratio: '1:1',
@@ -672,7 +674,7 @@ export default function CollageView({ photos, onSave, notify }: CollageViewProps
       const canvas = exportCanvas();
       const blob = await canvasToBlob(canvas, 'image/jpeg', 0.93);
       const count = photos.filter((p) => p.kind === 'collage').length + 1;
-      await onSave({
+      const record: PhotoRecord = {
         id: uid(),
         name: `Collage ${pad(count, 2)}`,
         createdAt: Date.now(),
@@ -684,9 +686,10 @@ export default function CollageView({ photos, onSave, notify }: CollageViewProps
         kind: 'collage',
         developed: true,
         note: cfg.caption || 'Made in the Collage studio',
-      });
+      };
+      await onSave(record);
       playSuccess();
-      notify('Collage saved to your archive.');
+      notify('Collage saved to your archive.', 'default', onFrame && { label: 'Frame it', run: () => onFrame(record) });
     } catch (error) {
       console.error(error);
       notify('The collage could not be saved.', 'warning');

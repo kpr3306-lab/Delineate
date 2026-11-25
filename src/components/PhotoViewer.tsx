@@ -1,8 +1,9 @@
-import { ChevronLeft, ChevronRight, Download, FlaskConical, FolderPlus, Heart, Info, MapPin, Pencil, PencilLine, Sparkles, Trash2, X } from 'lucide-react';
+import { Frame, Share2, ChevronLeft, ChevronRight, Download, FlaskConical, FolderPlus, Heart, Info, MapPin, Pencil, PencilLine, Sparkles, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { PhotoRecord } from '../types';
 import { formatBytes } from '../lib/backup';
+import { canShareImages, shareImage } from '../lib/share';
 import { useObjectUrl } from './ui';
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
   onClose: () => void;
   onEdit: (record: PhotoRecord) => void;
   onArt: (record: PhotoRecord) => void;
+  onFrame: (record: PhotoRecord) => void;
   onDevelop: (record: PhotoRecord) => void;
   onFavorite: (record: PhotoRecord) => void;
   onAlbum: (record: PhotoRecord) => void;
@@ -23,7 +25,7 @@ type Props = {
 const KIND: Record<PhotoRecord['kind'], string> = { still: 'Photo', collage: 'Collage', art: 'Art study', animated: 'Animated GIF' };
 
 /** Full-screen look at one archive frame: swipe or arrow through the roll, act on it, read its details. */
-export default function PhotoViewer({ photos, index, onIndex, onClose, onEdit, onArt, onDevelop, onFavorite, onAlbum, onSave, onDelete, onRename }: Props) {
+export default function PhotoViewer({ photos, index, onIndex, onClose, onEdit, onArt, onFrame, onDevelop, onFavorite, onAlbum, onSave, onDelete, onRename }: Props) {
   const record = photos[index];
   const url = useObjectUrl(record?.blob);
   const [details, setDetails] = useState(() => {
@@ -62,6 +64,7 @@ export default function PhotoViewer({ photos, index, onIndex, onClose, onEdit, o
     return { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2, d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1 };
   };
   const closeRef = useRef<HTMLButtonElement>(null);
+  const shareable = canShareImages();
   const [naming, setNaming] = useState<string | null>(null); // draft name while renaming
   useEffect(() => setNaming(null), [record?.id]);
   const commitName = () => {
@@ -106,7 +109,7 @@ export default function PhotoViewer({ photos, index, onIndex, onClose, onEdit, o
     ['Camera', record.camera ?? (record.kind === 'still' ? 'Imported' : '—')],
     ['Look', record.filterName || '—'],
     ...(record.note ? ([['Settings', record.note]] as [string, string][]) : []),
-    ['Size', `${record.width} × ${record.height} px · ${formatBytes(record.blob.size)}`],
+    ['Size', `${record.width} × ${record.height} px · ${formatBytes(record.blob.size)}${record.fullRes ? ` · full ${record.fullSize ?? ''} original kept (${formatBytes(record.fullRes.size)})` : ''}`],
     ['Type', `${KIND[record.kind]}${negative ? ' · undeveloped negative' : record.process ? ' · edited' : ''}`],
     [
       'Location',
@@ -157,6 +160,16 @@ export default function PhotoViewer({ photos, index, onIndex, onClose, onEdit, o
         <button type="button" className={`pv-icon ${record.favorite ? 'is-fav' : ''}`} onClick={() => onFavorite(record)} aria-pressed={Boolean(record.favorite)} aria-label={record.favorite ? 'Remove from favourites' : 'Add to favourites'}>
           <Heart size={19} />
         </button>
+        {shareable && (
+          <button
+            type="button"
+            className="pv-icon"
+            aria-label="Share"
+            onClick={() => void shareImage(record.blob, `${record.name.replace(/[^\w-]+/g, '-')}.${record.mime.includes('png') ? 'png' : record.mime.includes('gif') ? 'gif' : 'jpg'}`, record.name).catch(() => undefined)}
+          >
+            <Share2 size={18} />
+          </button>
+        )}
         <button type="button" className={`pv-icon ${details ? 'is-on' : ''}`} onClick={toggleDetails} aria-expanded={details} aria-label="Details">
           <Info size={19} />
         </button>
@@ -274,6 +287,10 @@ export default function PhotoViewer({ photos, index, onIndex, onClose, onEdit, o
             <button type="button" onClick={() => onArt(record)}>
               <Sparkles size={18} />
               <span>Art</span>
+            </button>
+            <button type="button" onClick={() => onFrame(record)}>
+              <Frame size={18} />
+              <span>Frame</span>
             </button>
           </>
         )}

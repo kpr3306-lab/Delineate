@@ -636,3 +636,38 @@ html[data-rot='270'] .dc-video { rotate: -90deg; }
   .archive-card.is-open .archive-actions button { transform: translateY(0); }
   .archive-image-wrap { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 }
+
+/* retro future: an 80s-dreamed tomorrow — indigo night, sunset magenta-to-orange, neon cyan, a glowing horizon grid */
+:root[data-theme='retro'] {
+  color-scheme: dark;
+  --paper: #140b2e;
+  --paper-light: #1f1444;
+  --paper-deep: #2a1b58;
+  --card: #1b1140;
+  --ink: #fbeeff;
+  --ink-soft: #d9c7f2;
+  --muted: #a493c9;
+  --line: rgba(255, 170, 230, 0.16);
+  --line-strong: rgba(255, 170, 230, 0.32);
+  --accent: #ff5ea8;
+  --accent-deep: #ff9ccc;
+  --accent-soft: #4a1d4f;
+  --olive: #4de2e8;
+  --olive-deep: #b8f6f8;
+  --gold: #ffb347;
+  --danger: #ff7a7a;
+  --paper-rgb: 31 20 68;
+  --ink-rgb: 251 238 255;
+  --shadow-soft: 0 18px 50px -30px rgba(0, 0, 0, 0.9);
+  --shadow-hard: 0 30px 80px -35px rgba(10, 0, 30, 0.95);
+}
+:root[data-theme='retro'] body {
+  background:
+    radial-gradient(900px 420px at 50% 112%, rgba(255, 94, 168, 0.32), transparent 70%),
+    radial-gradient(700px 300px at 50% 100%, rgba(255, 179, 71, 0.18), transparent 70%),
+    linear-gradient(transparent 62%, rgba(77, 226, 232, 0.05) 62.2%, transparent 62.6%) 0 0 / 100% 100%,
+    repeating-linear-gradient(90deg, rgba(255, 94, 168, 0.06) 0 1px, transparent 1px 64px),
+    var(--paper);
+  background-attachment: fixed;
+}
+:root[data-theme='retro'] .ambient-grain { mix-blend-mode: screen; opacity: 0.03; }

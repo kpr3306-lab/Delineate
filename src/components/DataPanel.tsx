@@ -4,6 +4,7 @@ import { askPersist, createBackup, formatBytes, readBackup, storageInfo, type Re
 import { downloadBlob } from '../lib/utils';
 import { Toggle } from './ui';
 import { isGeoOn, setGeoOn } from '../lib/place';
+import { lastBackup, noteBackup } from '../lib/backupNudge';
 
 /** Customise → Data: what is stored, keeping it, and moving it to another device. */
 export default function DataPanel({
@@ -19,6 +20,7 @@ export default function DataPanel({
   const [withSettings, setWithSettings] = useState(true);
   const [restoring, setRestoring] = useState(false);
   const [geo, setGeo] = useState(isGeoOn);
+  const [last, setLast] = useState(lastBackup);
   const toggleGeo = (on: boolean) => {
     if (!on || !navigator.geolocation) {
       setGeoOn(false);
@@ -46,6 +48,8 @@ export default function DataPanel({
     try {
       const { blob, counts: c } = await createBackup((p) => setProgress(p));
       downloadBlob(blob, `delineate-backup-${new Date().toISOString().slice(0, 10)}.zip`);
+      noteBackup(c.photos);
+      setLast(lastBackup());
       notify(`Backup ready: ${c.photos} photos, ${c.journals} journals, ${c.collections} albums & keepsakes (${formatBytes(c.bytes)}).`);
     } catch (error) {
       console.error(error);
@@ -128,6 +132,11 @@ export default function DataPanel({
           <DatabaseBackup size={15} /> Backup
         </h4>
         <p>One .zip with every photo, original, journal, recipe, album, capsule and wall, plus your settings. Clearing browser data cannot touch it.</p>
+        <p className="dp-last">
+          {last
+            ? `Last backup: ${new Date(last.at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })} · ${Math.max(0, counts.photos - last.count)} new photos since`
+            : 'No backup yet on this device.'}
+        </p>
         <button type="button" className="button button-dark" onClick={() => void backup()} disabled={progress !== null}>
           <DatabaseBackup size={14} /> {progress === null ? 'Download backup' : `Packing… ${Math.round(progress)}%`}
         </button>

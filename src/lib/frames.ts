@@ -1,37 +1,78 @@
 import type { FrameStyle } from '../types';
 
-export const FRAME_STYLES: { id: FrameStyle; label: string; swatch: string }[] = [
+export type FrameGroup = 'film' | 'prints' | 'gallery' | 'scrapbook' | 'experimental';
+export const FRAME_GROUPS: { id: FrameGroup; label: string }[] = [
+  { id: 'film', label: 'Film' },
+  { id: 'prints', label: 'Prints' },
+  { id: 'gallery', label: 'Gallery' },
+  { id: 'scrapbook', label: 'Scrapbook' },
+  { id: 'experimental', label: 'Experimental' },
+];
+
+export const FRAME_STYLES: { id: FrameStyle; label: string; swatch: string; group?: FrameGroup }[] = [
   { id: 'none', label: 'None', swatch: 'transparent' },
-  { id: 'film35', label: '35mm film', swatch: '#141210' },
-  { id: 'polaroid', label: 'Polaroid', swatch: '#f6f2e8' },
-  { id: 'instax', label: 'Instax', swatch: '#ffffff' },
-  { id: 'sx70', label: 'SX-70', swatch: 'linear-gradient(180deg, #f3efe6 70%, #e6dfd0 70%)' },
-  { id: 'medium', label: 'Medium format', swatch: '#0b0b0a' },
-  { id: 'slide', label: 'Slide mount', swatch: 'radial-gradient(circle, #6b8fb0 0 34%, #e2dfd8 36%)' },
-  { id: 'deckle', label: 'Deckle print', swatch: 'radial-gradient(circle, #f4eedf 0 55%, #2a2520 58%)' },
-  { id: 'float', label: 'Floating print', swatch: 'radial-gradient(circle, #ffffff 0 45%, #d8d4cb 70%)' },
-  { id: 'mat', label: 'Gallery mat', swatch: '#efe9dc' },
-  { id: 'blackmat', label: 'Black mat', swatch: 'radial-gradient(circle, #141414 0 55%, #cfcac0 58%)' },
-  { id: 'modern', label: 'Modern black', swatch: 'radial-gradient(circle, #f7f6f2 0 55%, #161616 58%)' },
-  { id: 'wood', label: 'Walnut', swatch: '#6b4325' },
-  { id: 'gold', label: 'Gilded', swatch: '#c9a14a' },
-  { id: 'stamp', label: 'Postage stamp', swatch: 'radial-gradient(circle at 50% 0, #c9b089 0 18%, #ffffff 20%)' },
-  { id: 'airmail', label: 'Airmail', swatch: 'repeating-linear-gradient(45deg, #d6322f 0 6px, #ffffff 6px 12px, #1f4fa0 12px 18px, #ffffff 18px 24px)' },
-  { id: 'tape', label: 'Scrapbook', swatch: '#e8d9b0' },
-  { id: 'negative', label: 'Negative strip', swatch: 'linear-gradient(90deg, #8c4416, #b4622a 30% 70%, #8c4416)' },
-  { id: 'dated', label: 'Date imprint', swatch: 'radial-gradient(circle at 75% 75%, #ff9a3c 0 12%, #6b7f94 14% 62%, #fbfaf6 64%)' },
-  { id: 'corners', label: 'Photo corners', swatch: 'linear-gradient(135deg, #0e0c0a 0 22%, #f7f2e7 22% 78%, #0e0c0a 78%)' },
-  { id: 'scallop', label: 'Scalloped edge', swatch: 'radial-gradient(circle, #fbf7ee 0 52%, #e4dccb 54%)' },
-  { id: 'linen', label: 'Linen mat', swatch: 'repeating-linear-gradient(90deg, #e7e0d1 0 2px, #d9d0bd 2px 3px)' },
-  { id: 'torn', label: 'Torn paper', swatch: 'radial-gradient(circle, #fbf8f0 0 50%, #c4a174 56%)' },
-  { id: 'caption', label: 'Caption strip', swatch: 'linear-gradient(180deg, #6b7f94 0 66%, #ffffff 66%)' },
-  { id: 'fineart', label: 'Fine art', swatch: 'radial-gradient(circle, #3a3a3a 0 26%, #fdfcf9 28%)' },
-  { id: 'boothstrip', label: 'Photo booth', swatch: 'repeating-linear-gradient(180deg, #6b6b6b 0 7px, #fbf8f1 7px 9px)' },
-  { id: 'washi', label: 'Washi tape', swatch: 'linear-gradient(135deg, #f4b6c2 0 30%, #ffffff 30% 70%, #a9d8c8 70%)' },
+  // film
+  { id: 'film35', label: '35mm film', swatch: '#141210', group: 'film' },
+  { id: 'negative', label: 'Negative strip', swatch: 'linear-gradient(90deg, #8c4416, #b4622a 30% 70%, #8c4416)', group: 'film' },
+  { id: 'medium', label: '120 film', swatch: '#0b0b0a', group: 'film' },
+  { id: 'slide', label: 'Transparency', swatch: 'radial-gradient(circle, #6b8fb0 0 34%, #e2dfd8 36%)', group: 'film' },
+  { id: 'contact', label: 'Contact sheet', swatch: 'linear-gradient(180deg, #121110 0 22%, #6b7f94 22% 78%, #121110 78%)', group: 'film' },
+  { id: 'dated', label: 'Date imprint', swatch: 'radial-gradient(circle at 75% 75%, #ff9a3c 0 12%, #6b7f94 14% 62%, #fbfaf6 64%)', group: 'film' },
+  // prints
+  { id: 'polaroid', label: 'Polaroid', swatch: '#f6f2e8', group: 'prints' },
+  { id: 'instax', label: 'Instax', swatch: '#ffffff', group: 'prints' },
+  { id: 'sx70', label: 'SX-70', swatch: 'linear-gradient(180deg, #f3efe6 70%, #e6dfd0 70%)', group: 'prints' },
+  { id: 'scallop', label: 'Scalloped edge', swatch: 'radial-gradient(circle, #fbf7ee 0 52%, #e4dccb 54%)', group: 'prints' },
+  { id: 'deckle', label: 'Handmade paper', swatch: 'radial-gradient(circle, #f4eedf 0 55%, #2a2520 58%)', group: 'prints' },
+  { id: 'softcorner', label: 'Soft corner', swatch: 'radial-gradient(circle, #ffffff 0 50%, #e9e4da 54%)', group: 'prints' },
+  { id: 'float', label: 'Floating print', swatch: 'radial-gradient(circle, #ffffff 0 45%, #d8d4cb 70%)', group: 'prints' },
+  // gallery & editorial
+  { id: 'fineart', label: 'Fine art', swatch: 'radial-gradient(circle, #3a3a3a 0 26%, #fdfcf9 28%)', group: 'gallery' },
+  { id: 'linen', label: 'Linen mat', swatch: 'repeating-linear-gradient(90deg, #e7e0d1 0 2px, #d9d0bd 2px 3px)', group: 'gallery' },
+  { id: 'embossed', label: 'Embossed', swatch: 'radial-gradient(circle, #6b7f94 0 30%, #f4efe4 32% 44%, #e2d9c6 46% 50%, #f4efe4 52%)', group: 'gallery' },
+  { id: 'mat', label: 'Gallery mat', swatch: '#efe9dc', group: 'gallery' },
+  { id: 'blackmat', label: 'Black mat', swatch: 'radial-gradient(circle, #141414 0 55%, #cfcac0 58%)', group: 'gallery' },
+  { id: 'modern', label: 'Modern black', swatch: 'radial-gradient(circle, #f7f6f2 0 55%, #161616 58%)', group: 'gallery' },
+  { id: 'hairline', label: 'Hairline', swatch: 'radial-gradient(circle, #6b7f94 0 40%, #ffffff 41% 47%, #222 48% 50%, #ffffff 51%)', group: 'gallery' },
+  { id: 'doubleline', label: 'Double line', swatch: 'radial-gradient(circle, #6b7f94 0 36%, #fff 37% 41%, #222 42% 44%, #fff 45% 48%, #222 49% 51%, #fff 52%)', group: 'gallery' },
+  { id: 'asymmetric', label: 'Asymmetric', swatch: 'linear-gradient(90deg, #f7f5f0 0 34%, #6b7f94 34% 88%, #f7f5f0 88%)', group: 'gallery' },
+  { id: 'caption', label: 'Caption strip', swatch: 'linear-gradient(180deg, #6b7f94 0 66%, #ffffff 66%)', group: 'gallery' },
+  { id: 'wood', label: 'Walnut', swatch: '#6b4325', group: 'gallery' },
+  { id: 'gold', label: 'Gilded', swatch: '#c9a14a', group: 'gallery' },
+  // scrapbook
+  { id: 'corners', label: 'Photo corners', swatch: 'linear-gradient(135deg, #b89a62 0 22%, #f7f2e7 22% 78%, #b89a62 78%)', group: 'scrapbook' },
+  { id: 'torn', label: 'Torn paper', swatch: 'radial-gradient(circle, #fbf8f0 0 50%, #c4a174 56%)', group: 'scrapbook' },
+  { id: 'washi', label: 'Washi tape', swatch: 'linear-gradient(135deg, #f4b6c2 0 30%, #ffffff 30% 70%, #a9d8c8 70%)', group: 'scrapbook' },
+  { id: 'washipaper', label: 'Washi paper', swatch: 'radial-gradient(circle at 78% 22%, #eca0aa 0 12%, #f3e9d6 14%)', group: 'scrapbook' },
+  { id: 'postcard', label: 'Postcard', swatch: 'linear-gradient(90deg, #6b7f94 0 58%, #f6efe0 58%)', group: 'scrapbook' },
+  { id: 'tape', label: 'Scrapbook', swatch: '#e8d9b0', group: 'scrapbook' },
+  { id: 'stamp', label: 'Postage stamp', swatch: 'radial-gradient(circle at 50% 0, #c9b089 0 18%, #ffffff 20%)', group: 'scrapbook' },
+  { id: 'airmail', label: 'Airmail', swatch: 'repeating-linear-gradient(45deg, #d6322f 0 6px, #ffffff 6px 12px, #1f4fa0 12px 18px, #ffffff 18px 24px)', group: 'scrapbook' },
+  // experimental & playful
+  { id: 'boothstrip', label: 'Photo booth', swatch: 'repeating-linear-gradient(180deg, #6b6b6b 0 7px, #fbf8f1 7px 9px)', group: 'experimental' },
+  { id: 'vhs', label: 'VHS overlay', swatch: 'radial-gradient(circle at 22% 25%, #ff3b30 0 9%, #2c3a4a 11%)', group: 'experimental' },
+  { id: 'newspaper', label: 'Newspaper', swatch: 'repeating-linear-gradient(180deg, #ece5d3 0 3px, #b8b0a0 3px 4px)', group: 'experimental' },
+  { id: 'passport', label: 'Passport', swatch: 'linear-gradient(90deg, #6b7f94 0 46%, #fff 46% 54%, #6b7f94 54%)', group: 'experimental' },
 ];
 
 /** Frames with a spot for the handwritten caption. */
-export const CAPTION_FRAMES: FrameStyle[] = ['polaroid', 'instax', 'sx70', 'slide', 'airmail', 'deckle', 'corners', 'caption', 'fineart', 'boothstrip'];
+export const CAPTION_FRAMES: FrameStyle[] = ['polaroid', 'instax', 'sx70', 'slide', 'airmail', 'deckle', 'corners', 'caption', 'fineart', 'boothstrip', 'asymmetric', 'contact', 'postcard', 'passport', 'newspaper'];
+/** What the caption box is called for each frame (a newspaper has a headline, a postcard a message). */
+export const CAPTION_LABEL: Partial<Record<FrameStyle, string>> = { newspaper: 'Headline', postcard: 'Message', fineart: 'Title', asymmetric: 'Title', passport: 'Name', contact: 'Note' };
+/** Frames whose paper colour can be changed. */
+export const PAPER_FRAMES: FrameStyle[] = ['polaroid', 'instax', 'sx70', 'tape', 'mat', 'float', 'dated', 'corners', 'scallop', 'torn', 'caption', 'fineart', 'washi', 'hairline', 'doubleline', 'asymmetric', 'softcorner', 'postcard', 'passport', 'embossed', 'washipaper'];
+export const PAPER_COLOURS = ['#ffffff', '#f3ead8', '#e6d8bd', '#e9c9c4', '#c9d6c3', '#c8d4e3', '#2a2826', '#141414'];
+export type FrameOpts = { scale?: number; paper?: string | null };
+
+// The paper override for the frame being drawn right now (drawing is synchronous, set and cleared by applyFrame).
+let paperOverride: string | null = null;
+const paper = (fallback: string) => paperOverride ?? fallback;
+const isDark = (c: string) => {
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(c);
+  return Boolean(m) && 0.299 * parseInt(m![1], 16) + 0.587 * parseInt(m![2], 16) + 0.114 * parseInt(m![3], 16) < 110;
+};
+/** Ink that stays readable on the paper: the frame's own colour, or a light ink on dark paper. */
+const ink = (fallback: string) => (paperOverride && isDark(paperOverride) ? '#efe9dc' : fallback);
 
 const HAND = '"Segoe Print", "Bradley Hand", "Comic Sans MS", cursive';
 
@@ -225,7 +266,7 @@ function extraFrame(src: HTMLCanvasElement, style: FrameStyle, caption: string, 
     // a glossy lab print: thin white border, the date burnt in orange in the bottom-right corner
     const b = u * 4;
     const { canvas, ctx } = make(w + b * 2, h + b * 2);
-    ctx.fillStyle = '#fbfaf6';
+    ctx.fillStyle = paper('#fbfaf6');
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(src, b, b);
     ctx.save();
@@ -256,7 +297,7 @@ function extraFrame(src: HTMLCanvasElement, style: FrameStyle, caption: string, 
     ctx.shadowColor = 'rgba(0,0,0,0.6)';
     ctx.shadowBlur = u * 1.5;
     ctx.shadowOffsetY = u * 0.6;
-    ctx.fillStyle = '#f7f2e7';
+    ctx.fillStyle = paper('#f7f2e7');
     ctx.fillRect(x, y, pw, ph);
     ctx.restore();
     ctx.drawImage(src, x + border, y + border);
@@ -307,7 +348,7 @@ function extraFrame(src: HTMLCanvasElement, style: FrameStyle, caption: string, 
     ctx.shadowColor = 'rgba(60,45,25,0.4)';
     ctx.shadowBlur = u * 2;
     ctx.shadowOffsetY = u * 0.7;
-    ctx.fillStyle = '#fbf7ee';
+    ctx.fillStyle = paper('#fbf7ee');
     scallopRect(ctx, back, back, pw, ph, u * 2.2);
     ctx.fill();
     ctx.restore();
@@ -372,7 +413,7 @@ function extraFrame(src: HTMLCanvasElement, style: FrameStyle, caption: string, 
     ctx.shadowColor = 'rgba(50,30,10,0.45)';
     ctx.shadowBlur = u * 1.8;
     ctx.shadowOffsetY = u * 0.6;
-    ctx.fillStyle = '#fbf8f0';
+    ctx.fillStyle = paper('#fbf8f0');
     tornRect(ctx, back, back, pw, ph, u * 1.6, u * 2.2, rand);
     ctx.fill();
     ctx.restore();
@@ -385,12 +426,12 @@ function extraFrame(src: HTMLCanvasElement, style: FrameStyle, caption: string, 
     const b = u * 3;
     const band = u * 15;
     const { canvas, ctx } = make(w + b * 2, h + b + band);
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = paper('#ffffff');
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(src, b, b);
     const mid = b + h + band / 2;
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#1c1b19';
+    ctx.fillStyle = ink('#1c1b19');
     ctx.font = serif(u * 6.4);
     ctx.fillText(caption || 'Untitled', b + u * 2, mid, w * 0.68);
     ctx.textAlign = 'right';
@@ -406,7 +447,7 @@ function extraFrame(src: HTMLCanvasElement, style: FrameStyle, caption: string, 
     const top = u * 14;
     const bottom = u * 24;
     const { canvas, ctx } = make(w + side * 2, h + top + bottom);
-    ctx.fillStyle = '#fdfcf9';
+    ctx.fillStyle = paper('#fdfcf9');
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     paperTexture(ctx, canvas.width, canvas.height, u, '150,140,120');
     ctx.drawImage(src, side, top);
@@ -415,7 +456,7 @@ function extraFrame(src: HTMLCanvasElement, style: FrameStyle, caption: string, 
     ctx.strokeRect(side - u * 2.2, top - u * 2.2, w + u * 4.4, h + u * 4.4);
     const y = top + h + bottom * 0.52;
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#5a5650';
+    ctx.fillStyle = ink('#5a5650');
     ctx.font = serif(u * 5.4, true);
     ctx.fillText(caption || 'Untitled', side, y, w * 0.6);
     ctx.textAlign = 'right';
@@ -469,7 +510,7 @@ function extraFrame(src: HTMLCanvasElement, style: FrameStyle, caption: string, 
     ctx.shadowColor = 'rgba(60,45,25,0.3)';
     ctx.shadowBlur = u * 1.6;
     ctx.shadowOffsetY = u * 0.6;
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = paper('#ffffff');
     ctx.fillRect(back, back, pw, ph);
     ctx.restore();
     ctx.drawImage(src, back + b, back + b);
@@ -509,15 +550,405 @@ function extraFrame(src: HTMLCanvasElement, style: FrameStyle, caption: string, 
     return canvas;
   }
 
+  if (style === 'hairline' || style === 'doubleline') {
+    // quiet editorial borders: a paper margin with one (or two) very fine rules around the photo
+    const m = style === 'hairline' ? u * 6 : u * 9;
+    const { canvas, ctx } = make(w + m * 2, h + m * 2);
+    ctx.fillStyle = paper('#ffffff');
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(src, m, m);
+    ctx.strokeStyle = ink('rgba(20,20,20,0.75)');
+    ctx.lineWidth = Math.max(1, u * 0.14);
+    const rule = (d: number) => ctx.strokeRect(m - d, m - d, w + d * 2, h + d * 2);
+    rule(u * 1.6);
+    if (style === 'doubleline') rule(u * 3.1);
+    return canvas;
+  }
+
+  if (style === 'asymmetric') {
+    // deliberately uneven margins, a magazine layout: wide left and foot, a small caption tucked in the corner
+    const l = u * 16;
+    const t = u * 7;
+    const r = u * 6;
+    const b = u * 16;
+    const { canvas, ctx } = make(w + l + r, h + t + b);
+    ctx.fillStyle = paper('#f7f5f0');
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(src, l, t);
+    ctx.fillStyle = ink('#2b2925');
+    ctx.textBaseline = 'top';
+    ctx.font = serif(u * 4.6, true);
+    ctx.fillText(caption || 'Untitled', l, t + h + u * 3.5, w * 0.7);
+    ctx.font = mono(u * 2.6);
+    ctx.fillStyle = ink('#8a857c');
+    ctx.fillText(new Date(date).getFullYear().toString(), l, t + h + u * 9.5);
+    // a short vertical rule in the wide margin, like a page marker
+    ctx.fillRect(l * 0.42, t, Math.max(1, u * 0.2), h * 0.22);
+    return canvas;
+  }
+
+  if (style === 'softcorner') {
+    // a print with gently rounded corners, lying on a pale wall
+    const back = u * 7;
+    const b = u * 4;
+    const pw = w + b * 2;
+    const ph = h + b * 2;
+    const { canvas, ctx } = make(pw + back * 2, ph + back * 2);
+    ctx.fillStyle = '#e9e4da';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.shadowColor = 'rgba(40,32,20,0.3)';
+    ctx.shadowBlur = u * 3;
+    ctx.shadowOffsetY = u * 1.2;
+    ctx.fillStyle = paper('#ffffff');
+    roundRect(ctx, back, back, pw, ph, u * 6);
+    ctx.fill();
+    ctx.restore();
+    ctx.save();
+    roundRect(ctx, back + b, back + b, w, h, u * 4);
+    ctx.clip();
+    ctx.drawImage(src, back + b, back + b);
+    ctx.restore();
+    return canvas;
+  }
+
+  if (style === 'contact') {
+    // one frame cut from a contact sheet: black film edge, yellow markings, a red china-marker box around the pick
+    const side = u * 5;
+    const rail = u * 9;
+    const { canvas, ctx } = make(w + side * 2, h + rail * 2);
+    ctx.fillStyle = '#121110';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(src, side, rail);
+    ctx.fillStyle = '#e6c24a';
+    ctx.font = mono(u * 2.8, 600);
+    ctx.textBaseline = 'middle';
+    ctx.fillText('DELINEATE 400', side, rail / 2);
+    ctx.textAlign = 'right';
+    ctx.fillText('52', canvas.width - side, rail / 2);
+    ctx.textAlign = 'left';
+    ctx.fillText('▸ 14', side, canvas.height - rail / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText('▸ 14A', canvas.width / 2, canvas.height - rail / 2);
+    // grease pencil: a loose hand-drawn box and the caption scrawled in the margin
+    ctx.save();
+    ctx.strokeStyle = 'rgba(214, 40, 40, 0.85)';
+    ctx.lineWidth = u * 0.9;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    const j = () => (rand() - 0.5) * u * 1.6;
+    ctx.moveTo(side - u + j(), rail - u + j());
+    ctx.lineTo(side + w + u + j(), rail - u * 1.4 + j());
+    ctx.lineTo(side + w + u * 1.2 + j(), rail + h + u + j());
+    ctx.lineTo(side - u * 0.8 + j(), rail + h + u * 1.2 + j());
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+    if (caption) {
+      ctx.fillStyle = 'rgba(230, 60, 50, 0.95)';
+      ctx.font = `${u * 4.4}px ${HAND}`;
+      ctx.textAlign = 'right';
+      ctx.fillText(caption, canvas.width - side, canvas.height - rail / 2, w * 0.55);
+    }
+    return canvas;
+  }
+
+  if (style === 'postcard') {
+    // the photo on the left, a message, a stamp, a postmark and address lines on the right
+    const m = u * 5;
+    const panel = Math.round(w * 0.5);
+    const { canvas, ctx } = make(w + panel + m * 3, h + m * 2);
+    ctx.fillStyle = paper('#f6efe0');
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    paperTexture(ctx, canvas.width, canvas.height, u);
+    ctx.drawImage(src, m, m);
+    const px = m * 2 + w;
+    ctx.strokeStyle = ink('rgba(60,50,40,0.35)');
+    ctx.lineWidth = Math.max(1, u * 0.2);
+    ctx.beginPath();
+    ctx.moveTo(px - m / 2, m * 2);
+    ctx.lineTo(px - m / 2, canvas.height - m * 2);
+    ctx.stroke();
+    // stamp with perforated edge
+    const sw = panel * 0.3;
+    const sh = sw * 1.2;
+    const sx = canvas.width - m - sw;
+    const sy = m;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(sx, sy, sw, sh);
+    ctx.fillStyle = '#c0563f';
+    ctx.fillRect(sx + sw * 0.12, sy + sh * 0.1, sw * 0.76, sh * 0.8);
+    ctx.fillStyle = '#f3e3c3';
+    ctx.beginPath();
+    ctx.arc(sx + sw / 2, sy + sh * 0.45, sw * 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    // postmark rings and wavy cancel lines
+    ctx.strokeStyle = 'rgba(40,40,60,0.55)';
+    ctx.lineWidth = Math.max(1, u * 0.3);
+    ctx.beginPath();
+    ctx.arc(sx - sw * 0.25, sy + sh * 0.6, sw * 0.42, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.font = mono(u * 2);
+    ctx.fillStyle = 'rgba(40,40,60,0.6)';
+    ctx.textAlign = 'center';
+    ctx.fillText(new Date(date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase(), sx - sw * 0.25, sy + sh * 0.62);
+    // message and address lines
+    ctx.textAlign = 'left';
+    ctx.fillStyle = ink('#3a3128');
+    ctx.font = `${u * 5.2}px ${HAND}`;
+    ctx.textBaseline = 'middle';
+    ctx.fillText(caption || 'Wish you were here!', px, m + sh + (canvas.height - m * 2 - u * 21 - (m + sh)) / 2, panel - u * 2);
+    ctx.strokeStyle = ink('rgba(60,50,40,0.4)');
+    for (let i = 0; i < 4; i += 1) {
+      const y = canvas.height - m * 2 - i * u * 7;
+      ctx.beginPath();
+      ctx.moveTo(px + panel * 0.12, y);
+      ctx.lineTo(canvas.width - m, y);
+      ctx.stroke();
+    }
+    return canvas;
+  }
+
+  if (style === 'passport') {
+    // an ID-photo sheet: four 35×45 crops with cut marks and a name line
+    const cw = Math.round(Math.max(w, h) * 0.3);
+    const ch = Math.round((cw * 45) / 35);
+    const g = Math.round(cw * 0.1);
+    const foot = Math.round(cw * 0.3);
+    const { canvas, ctx } = make(cw * 2 + g * 3, ch * 2 + g * 3 + foot);
+    ctx.fillStyle = paper('#ffffff');
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const k = Math.max(cw / w, ch / h);
+    for (let i = 0; i < 4; i += 1) {
+      const x = g + (i % 2) * (cw + g);
+      const y = g + Math.floor(i / 2) * (ch + g);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x, y, cw, ch);
+      ctx.clip();
+      ctx.drawImage(src, x + (cw - w * k) / 2, y + (ch - h * k) / 2, w * k, h * k);
+      ctx.restore();
+    }
+    // cut marks
+    ctx.strokeStyle = ink('rgba(0,0,0,0.35)');
+    ctx.lineWidth = 1;
+    ctx.setLineDash([u * 1.2, u * 1.2]);
+    ctx.beginPath();
+    ctx.moveTo(canvas.width / 2, 0);
+    ctx.lineTo(canvas.width / 2, ch * 2 + g * 3);
+    ctx.moveTo(0, ch + g * 1.5);
+    ctx.lineTo(canvas.width, ch + g * 1.5);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = ink('#2a2a2a');
+    ctx.textBaseline = 'middle';
+    ctx.font = mono(foot * 0.2, 600);
+    ctx.fillText((caption || 'Delineate').toUpperCase(), g, ch * 2 + g * 3 + foot * 0.45, cw * 1.3);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = ink('#8a857c');
+    ctx.font = mono(foot * 0.16);
+    ctx.fillText('35 × 45 MM', canvas.width - g, ch * 2 + g * 3 + foot * 0.45);
+    return canvas;
+  }
+
+  if (style === 'vhs') {
+    // a camcorder viewfinder: thin black surround, REC, battery, timestamp and faint scanlines
+    const b = u * 2.2;
+    const { canvas, ctx } = make(w + b * 2, h + b * 2);
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(src, b, b);
+    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+    for (let y = b; y < b + h; y += Math.max(3, u * 0.8)) ctx.fillRect(b, y, w, 1);
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = u * 0.8;
+    ctx.fillStyle = '#ff3b30';
+    ctx.beginPath();
+    ctx.arc(b + u * 6, b + u * 6, u * 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = mono(u * 4, 600);
+    ctx.textBaseline = 'middle';
+    ctx.fillText('REC', b + u * 9, b + u * 6);
+    ctx.textAlign = 'right';
+    ctx.fillText('SP ▮▮▮▯', b + w - u * 4, b + u * 6);
+    ctx.textAlign = 'left';
+    const d = new Date(date);
+    const hrs = d.getHours();
+    ctx.fillText(`${hrs < 12 ? 'AM' : 'PM'} ${((hrs + 11) % 12) + 1}:${String(d.getMinutes()).padStart(2, '0')}`, b + u * 4, b + h - u * 11);
+    ctx.fillText(d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase().replace(',', ''), b + u * 4, b + h - u * 5);
+    ctx.restore();
+    return canvas;
+  }
+
+  if (style === 'embossed') {
+    // a pressed paper border: a raised band with a soft highlight and shadow, small corner ornaments
+    const m = u * 13;
+    const { canvas, ctx } = make(w + m * 2, h + m * 2);
+    const base = paper('#f4efe4');
+    ctx.fillStyle = base;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    paperTexture(ctx, canvas.width, canvas.height, u);
+    const band = (d: number, light: string, dark: string) => {
+      ctx.lineWidth = Math.max(1, u * 0.5);
+      ctx.strokeStyle = dark;
+      ctx.strokeRect(m - d + u * 0.25, m - d + u * 0.25, w + d * 2, h + d * 2);
+      ctx.strokeStyle = light;
+      ctx.strokeRect(m - d - u * 0.25, m - d - u * 0.25, w + d * 2, h + d * 2);
+    };
+    band(u * 4, 'rgba(255,255,255,0.9)', 'rgba(90,70,40,0.28)');
+    band(u * 7.5, 'rgba(255,255,255,0.8)', 'rgba(90,70,40,0.2)');
+    const orn = (x: number, y: number) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = 'rgba(90,70,40,0.22)';
+      ctx.fillRect(-u * 1.3 + u * 0.25, -u * 1.3 + u * 0.25, u * 2.6, u * 2.6);
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.fillRect(-u * 1.3 - u * 0.2, -u * 1.3 - u * 0.2, u * 2.6, u * 2.6);
+      ctx.restore();
+    };
+    orn(m - u * 7.5, m - u * 7.5);
+    orn(m + w + u * 7.5, m - u * 7.5);
+    orn(m - u * 7.5, m + h + u * 7.5);
+    orn(m + w + u * 7.5, m + h + u * 7.5);
+    // the photo sits in a slight debossed well
+    ctx.save();
+    ctx.shadowColor = 'rgba(60,40,20,0.35)';
+    ctx.shadowBlur = u * 1.2;
+    ctx.fillStyle = base;
+    ctx.fillRect(m, m, w, h);
+    ctx.restore();
+    ctx.drawImage(src, m, m);
+    return canvas;
+  }
+
+  if (style === 'washipaper') {
+    // warm Japanese paper: long soft fibres, a deckled edge, one small blossom sprig
+    const back = u * 5;
+    const b = u * 9;
+    const pw = w + b * 2;
+    const ph = h + b * 2;
+    const { canvas, ctx } = make(pw + back * 2, ph + back * 2);
+    ctx.fillStyle = '#d9cbb2';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.shadowColor = 'rgba(70,50,20,0.3)';
+    ctx.shadowBlur = u * 1.5;
+    ctx.fillStyle = paper('#f3e9d6');
+    deckleRect(ctx, back, back, pw, ph, u * 1.8, u * 0.9);
+    ctx.fill();
+    ctx.restore();
+    ctx.save();
+    deckleRect(ctx, back, back, pw, ph, u * 1.8, u * 0.9);
+    ctx.clip();
+    ctx.lineWidth = Math.max(1, u * 0.18);
+    for (let i = 0; i < 260; i += 1) {
+      const x = back + rand() * pw;
+      const y = back + rand() * ph;
+      const len = u * (3 + rand() * 9);
+      const a = rand() * Math.PI;
+      ctx.strokeStyle = `rgba(150, 120, 80, ${0.05 + rand() * 0.1})`;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.quadraticCurveTo(x + Math.cos(a) * len * 0.5 + u, y + Math.sin(a) * len * 0.5, x + Math.cos(a) * len, y + Math.sin(a) * len);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.drawImage(src, back + b, back + b);
+    // blossom sprig in the top-right margin
+    const bx = back + pw - b * 0.5;
+    const by = back + b * 0.5;
+    ctx.strokeStyle = '#6b4a35';
+    ctx.lineWidth = u * 0.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(bx, by - u * 3);
+    ctx.quadraticCurveTo(bx - u * 6, by + u * 2, bx - u * 16, by + u * 3);
+    ctx.stroke();
+    const flower = (x: number, y: number, r: number) => {
+      ctx.fillStyle = 'rgba(236, 160, 170, 0.92)';
+      for (let p = 0; p < 5; p += 1) {
+        const a = (p / 5) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(x + Math.cos(a) * r, y + Math.sin(a) * r, r * 0.75, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = '#c0463f';
+      ctx.beginPath();
+      ctx.arc(x, y, r * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    };
+    flower(bx - u * 5, by + u * 0.6, u * 1.3);
+    flower(bx - u * 11, by + u * 2.6, u * 1);
+    flower(bx - u * 1.5, by - u * 2.2, u * 0.8);
+    return canvas;
+  }
+
+  if (style === 'newspaper') {
+    // a newsprint clipping: masthead, dateline, your headline, the photo in halftone grey, columns of type
+    const m = u * 6;
+    const mast = u * 13;
+    const head = u * 11;
+    const cols = u * 26;
+    const { canvas, ctx } = make(w + m * 2, h + mast + head + cols + m * 2);
+    ctx.fillStyle = '#ece5d3';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    paperTexture(ctx, canvas.width, canvas.height, u, '60,50,30');
+    const cx = canvas.width / 2;
+    ctx.fillStyle = '#1f1c17';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = serif(u * 9);
+    ctx.fillText('The Delineate Gazette', cx, m + mast * 0.42, w);
+    ctx.fillRect(m, m + mast * 0.82, w, Math.max(1, u * 0.35));
+    ctx.fillRect(m, m + mast * 0.82 + u * 0.8, w, Math.max(1, u * 0.12));
+    ctx.font = mono(u * 2.2);
+    ctx.textAlign = 'left';
+    ctx.fillText(new Date(date).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase(), m, m + mast + u * 0.6);
+    ctx.textAlign = 'right';
+    ctx.fillText('ONE PENNY', m + w, m + mast + u * 0.6);
+    ctx.textAlign = 'center';
+    ctx.font = serif(u * 6.4);
+    ctx.fillText(caption || 'A Day Worth Remembering', cx, m + mast + head * 0.55, w);
+    const py = m + mast + head;
+    ctx.save();
+    ctx.filter = 'grayscale(1) contrast(1.1) sepia(0.15)';
+    ctx.drawImage(src, m, py);
+    ctx.restore();
+    // three columns of "type": grey bars with a ragged last line
+    const top = py + h + u * 3;
+    const colW = (w - u * 4) / 3;
+    ctx.fillStyle = 'rgba(40,35,28,0.35)';
+    for (let c = 0; c < 3; c += 1) {
+      const x = m + c * (colW + u * 2);
+      for (let y = top; y < top + cols - u * 3; y += u * 2.3) {
+        const lw = y + u * 2.3 >= top + cols - u * 3 ? colW * (0.3 + rand() * 0.4) : colW * (0.92 + rand() * 0.08);
+        ctx.fillRect(x, y, lw, u * 0.9);
+      }
+    }
+    return canvas;
+  }
+
   return null;
 }
 
 /** Wrap a rendered image in a physical-looking frame. Returns a new, larger canvas. */
-export function applyFrame(src: HTMLCanvasElement, style: FrameStyle, caption = '', date = Date.now()): HTMLCanvasElement {
+export function applyFrame(src: HTMLCanvasElement, style: FrameStyle, caption = '', date = Date.now(), opts: FrameOpts = {}): HTMLCanvasElement {
   if (style === 'none') return src;
+  paperOverride = PAPER_FRAMES.includes(style) ? (opts.paper ?? null) : null;
+  try {
+    return drawFrame(src, style, caption, date, Math.min(2, Math.max(0.5, opts.scale ?? 1)));
+  } finally {
+    paperOverride = null;
+  }
+}
+
+function drawFrame(src: HTMLCanvasElement, style: FrameStyle, caption: string, date: number, scale: number): HTMLCanvasElement {
   const w = src.width;
   const h = src.height;
-  const u = Math.min(w, h) / 100; // one "unit" = 1% of the short side
+  const u = (Math.min(w, h) / 100) * scale; // one "unit" = 1% of the short side, times the chosen thickness
   const rand = seeded(9);
   const extra = extraFrame(src, style, caption, date, u);
   if (extra) return extra;
@@ -557,7 +988,7 @@ export function applyFrame(src: HTMLCanvasElement, style: FrameStyle, caption = 
     const side = style === 'instax' ? u * 6 : u * 7;
     const bottom = style === 'tape' ? side : style === 'instax' ? u * 22 : style === 'sx70' ? u * 24 : u * 26;
     const { canvas, ctx } = make(w + side * 2, h + side + bottom);
-    ctx.fillStyle = style === 'polaroid' ? '#f6f2e8' : style === 'sx70' ? '#f3efe6' : '#fffefb';
+    ctx.fillStyle = paper(style === 'polaroid' ? '#f6f2e8' : style === 'sx70' ? '#f3efe6' : '#fffefb');
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     paperTexture(ctx, canvas.width, canvas.height, u);
     if (style === 'sx70') {
@@ -577,7 +1008,7 @@ export function applyFrame(src: HTMLCanvasElement, style: FrameStyle, caption = 
       ctx.lineWidth = Math.max(1, u * 0.2);
       ctx.strokeRect(side, side, w, h);
     }
-    if (style !== 'tape') captionText(ctx, caption, canvas.width / 2, h + side + bottom / 2, u * 7, w);
+    if (style !== 'tape') captionText(ctx, caption, canvas.width / 2, h + side + bottom / 2, u * 7, w, ink('#2a2a2a'));
     if (style === 'tape') {
       const tape = (x: number, y: number, angle: number) => {
         ctx.save();
@@ -623,7 +1054,7 @@ export function applyFrame(src: HTMLCanvasElement, style: FrameStyle, caption = 
     const { canvas, ctx } = make(w + (mat + rim) * 2, h + (mat + rim) * 2);
     ctx.fillStyle = '#1d1b18';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#efe9dc';
+    ctx.fillStyle = paper('#efe9dc');
     ctx.fillRect(rim, rim, canvas.width - rim * 2, canvas.height - rim * 2);
     ctx.fillStyle = 'rgba(0,0,0,0.18)';
     ctx.fillRect(rim + mat - u * 0.6, rim + mat - u * 0.6, w + u * 1.2, h + u * 1.2);
@@ -680,7 +1111,7 @@ export function applyFrame(src: HTMLCanvasElement, style: FrameStyle, caption = 
     ctx.shadowColor = 'rgba(40,32,20,0.38)';
     ctx.shadowBlur = u * 5;
     ctx.shadowOffsetY = u * 2.6;
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = paper('#ffffff');
     ctx.fillRect(wall, wall, w + border * 2, h + border * 2);
     ctx.restore();
     ctx.drawImage(src, wall + border, wall + border);

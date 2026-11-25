@@ -112,3 +112,68 @@ A new **Memories** tab gathers the signature experiences:
 <p align="center">
   <img src="docs/screenshots/phone.png" alt="Delineate on a phone" width="300" />
 </p>
+
+---
+
+## What's new (1.4)
+
+### Studio: frames made for print
+
+![Delineate — Studio › Frames with print sizes and the print sheet](docs/screenshots/studio-print.png)
+
+The Art Lab is now the **Studio**, with **Art** and **Frames** side by side. Frames is built around the physical print:
+
+- **Print sizes** — Wallet, 3.5×5, 4×6, 5×7, 6×8, 8×10, Square, Passport, A6, A5, or a custom width × height in **inches or cm**. The photo is cropped so the *framed* print comes out exactly that size, at 300 dpi.
+- **Print sheet** — add prints of different photos and sizes, set copies, choose the paper (A4, US Letter, A3, 4×6 or 5×7 photo paper), margins, gaps and cut marks, and download **one PDF that prints at true size** (print at 100% / actual size).
+- **Edit** opens the full Process editor inside the Frames tab; save or discard to come back to the print. Originals are never changed, and every framed copy re-opens in Process.
+- Frame a photo straight from the photo viewer, or a collage right after saving it.
+
+### 36 frames
+
+![Delineate frames catalogue](docs/screenshots/frames-catalogue.png)
+
+Five families — **Film, Prints, Gallery, Scrapbook, Experimental** — including Negative strip, Date imprint, Transparency, 120 film, Contact sheet, Scalloped edge, Handmade paper, Linen mat, Torn paper, Photo corners, Embossed, Fine art, Caption strip, Hairline, Double line, Asymmetric, Soft corner, Washi tape, Washi paper, Postcard, Photo booth, Passport, VHS overlay and Newspaper.
+
+- Write your own **caption, headline, message, title or name** where the frame has room for one.
+- Adjust **thickness** and **paper colour**, star **favourite frames**, and save **frame recipes** to reuse.
+- The same frames are in **Process** and **Studio › Art**, and Process now has **undo/redo** (Ctrl Z / Ctrl Shift Z) and a **resizable crop grid** with a Free shape.
+
+### Archive and photo viewer
+
+<p align="center">
+  <img src="docs/screenshots/viewer.png" alt="Delineate photo viewer with details" width="300" />
+</p>
+
+- Smaller thumbnails (three to a row on phones) and a **full-screen viewer**: swipe or arrow through the roll, **pinch / double-tap / scroll to zoom**, rename a frame from its title, and Edit, Art, Frame, Album, Save or Delete from there.
+- **Details** — date, time, camera, look, settings, size and location. Imported JPEGs keep the date and place they were taken (read from the file's EXIF); new camera shots can be location-tagged (Customise → Data, off by default).
+- **Select several frames** to add to an album, save as a .zip or delete — with **Undo** after a delete.
+
+### Camera and app
+
+- Each Pocket Digital body has its own finish; camera descriptions live in a small ⓘ button; the Digi body wheel perches on the camera.
+- New **Retro Future** theme.
+- On narrow phones the tab bar becomes **two snapping pages of four**; filter and tab pills wrap flush on small screens.
+- **Faster first load** — each tab loads on its own and the rest are fetched in the background, so everything still works offline.
+- Fixes for 16:9 on iPhone, the rotated layout on Android, and app icons refreshing after an update.
+
+Self-checks: `node scripts/print.check.ts`, `node scripts/crop.check.ts`, `node scripts/exif.check.ts`.
+
+### More to print
+
+- **Drag to crop** — when a print size is set, drag the photo in the preview to choose what stays in.
+- **Greeting cards** — a folded A6 or 5 × 7 card: your photo on the front, your message inside (handwritten or serif), printed double-sided.
+- **Photo calendar** — twelve months from any start month, Monday or Sunday weeks, with a cover; your favourites are picked automatically, or choose the photos.
+- **Contact sheet** — a whole roll as numbered frames on film-strip rows, like a lab proof.
+- **Printer test page** — print it at 100%, measure the 100 mm line and enter it; true-size prints and cards are then corrected for your printer.
+- **Signature / watermark** — your own text on the photo, in a handwritten, serif, sans or typewriter style, in any corner or centred, at your size and strength (Process and Studio › Frames).
+- **Share** — send a print or a photo straight to WhatsApp, Instagram, AirDrop and more from the phone's share sheet (where the browser supports it).
+
+### Keeping photos safe
+
+- **Tidy up** (Archive) — finds near-duplicate photos (a perceptual fingerprint survives resizing and small edits) and the largest files; the best copy of each set is kept by default, and deletes can be undone.
+- **Very large photos** (48–200 MP) are worked on through a 4096 px copy so phones never run out of memory; the full-resolution original is kept for downloads and backups.
+- **Backup reminders** — a gentle nudge when photos have never been backed up or it has been a month; Customise › Data shows the last backup.
+- **Crash recovery** — if something goes wrong inside one tab, it shows a calm message with *Try again* instead of a blank app.
+- **Install guide** — the **?** panel explains how to add Delineate to the home screen on iPhone (Safari) and Android (Chrome).
+
+All self-checks: `node scripts/print.check.ts`, `node scripts/crop.check.ts`, `node scripts/exif.check.ts`, `node scripts/dupes.check.ts`, `node scripts/backup.check.ts`.

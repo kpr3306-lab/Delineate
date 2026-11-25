@@ -55,7 +55,20 @@ export type FrameStyle =
   | 'caption'
   | 'fineart'
   | 'boothstrip'
-  | 'washi';
+  | 'washi'
+  | 'hairline'
+  | 'doubleline'
+  | 'asymmetric'
+  | 'softcorner'
+  | 'contact'
+  | 'postcard'
+  | 'passport'
+  | 'vhs'
+  | 'embossed'
+  | 'washipaper'
+  | 'newspaper';
+
+export type Watermark = { text: string; font: 'hand' | 'serif' | 'sans' | 'mono'; pos: 'br' | 'bl' | 'tr' | 'tl' | 'c'; size: number; opacity: number; ink: 'light' | 'dark' };
 
 export type StampStyle = 'none' | 'date' | 'led' | 'lcd' | 'dymo' | 'ink' | 'editorial' | 'camcorder' | 'rec';
 export type StampCorner = 'br' | 'bl' | 'tr' | 'tl';
@@ -78,6 +91,11 @@ export type Effects = {
   border: FrameStyle;
   /** 4:3 and 16:9 follow the photo's orientation; 4:5 is always portrait, 2.39 always wide. */
   aspect: CropAspect;
+  /** Frame thickness (0.5–2, 1 = as designed) and paper colour (null = the frame's own). */
+  frameScale?: number;
+  /** Your signature on the photo (null/undefined = none). Size is % of the short side. */
+  watermark?: Watermark | null;
+  framePaper?: string | null;
   /** Width ÷ height of a hand-drawn crop, used when aspect is 'free'. */
   cropRatio?: number;
   /** Crop geometry: quarter turns, mirror, fine straighten (deg), zoom, and pan (-1..1 of the slack). */
@@ -149,6 +167,9 @@ export type PhotoRecord = {
   favorite?: boolean;
   /** Where it was shot, only when the user turned on location tags. */
   place?: { lat: number; lon: number; acc?: number };
+  /** The untouched file when it was too large to work on directly (`blob` is then a 4096 px working copy). */
+  fullRes?: Blob;
+  fullSize?: string;
 };
 
 /** A user-saved Process preset (look + effects minus anything tied to one photo). */

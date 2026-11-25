@@ -2,7 +2,7 @@
  * What changed since the last deployed version (shown in Customise → What's new).
  * When you ship: bump APP_VERSION, add a new release at the top, keep older ones below.
  */
-export const APP_VERSION = '1.3.0';
+export const APP_VERSION = '1.4.0';
 
 export type Release = {
   version: string;
@@ -12,6 +12,64 @@ export type Release = {
 };
 
 export const CHANGELOG: Release[] = [
+  {
+    version: '1.4.0',
+    date: 'Nov 2026',
+    title: 'Studio, frames and print',
+    areas: [
+      {
+        name: 'Studio & print (new)',
+        items: [
+          'The Art Lab is now the Studio, with Art and Frames side by side.',
+          'Frames is made for printing: pick a print size — wallet, 3.5×5, 4×6, 5×7, 6×8, 8×10, square, passport, A6, A5 — or type your own in inches or cm. The photo is cropped so the framed print comes out exactly that size.',
+          'Print sheet: add prints of different photos and sizes, set copies, paper (A4, Letter, A3, 4×6 or 5×7 photo paper), margins, gaps and cut marks, and download one PDF that prints at true size.',
+          '36 frames in five families — Film, Prints, Gallery, Scrapbook and Experimental — including Negative strip, Date imprint, Contact sheet, Scalloped edge, Linen mat, Torn paper, Photo corners, Embossed, Fine art, Caption strip, Hairline, Double line, Asymmetric, Soft corner, Washi tape and paper, Postcard, Photo booth, Passport, VHS overlay and Newspaper.',
+          'Write your own caption, headline, message, title or name on the frames that have room for one.',
+          'Adjust frame thickness and paper colour, star favourite frames, and save frame recipes to reuse.',
+          'Edit opens the full Process editor right inside Frames; save or discard to come back to your print. The original photo is never changed.',
+          'Frame a photo straight from the viewer (Frame), or a collage right after saving it (Frame it).',
+          'Drag the photo in the print preview to choose what stays in the crop.',
+          'More to print: folded greeting cards with your message, a 12-month photo calendar, a contact sheet of a whole roll, and a printer test page that corrects your printer so prints come out true to size.',
+          'Your signature on the photo: a watermark with your own text, font, corner, size and strength (Process and Studio › Frames).',
+          'Share any print or photo straight to WhatsApp, Instagram, AirDrop and more, on phones that support it.',
+        ],
+      },
+      {
+        name: 'Process',
+        items: [
+          'The same frames, thickness, paper colours, favourites and recipes as the Studio.',
+          'Undo and redo (buttons under the photo, or Ctrl Z / Ctrl Shift Z) — here and in Studio › Frames.',
+          'Crop: drag the corners or edges of the grid to resize the frame, drag the photo to line it up. New Free shape for any proportions.',
+        ],
+      },
+      {
+        name: 'Archive & viewer',
+        items: [
+          'Smaller thumbnails — three to a row on phones — so the roll is quick to scroll.',
+          'Tap a photo to open it full screen: swipe or use the arrows, pinch, double-tap or scroll to zoom, rename it from its title, and Edit, Art, Frame, Album, Save or Delete from there.',
+          'Details (ⓘ): date, time, camera, look, settings, size and location.',
+          'Imported photos keep the date and place they were taken, read from the file itself (JPEG). Location tags for new camera shots are in Customise → Data (off by default).',
+          'Select several frames at once to add them to an album, save them as a .zip or delete them — and Undo a delete for a few seconds afterwards.',
+          'Tidy up: find near-duplicate photos and the largest files, and clear them out (with Undo).',
+          'Very large photos (48–200 MP) are worked on through a 4096 px copy so phones never run out of memory; the full-resolution original is kept for downloads and backups.',
+        ],
+      },
+      {
+        name: 'Camera & app',
+        items: [
+          'Each Pocket Digital body wears its own finish: silver, cobalt, rose copper, crimson, ice teal, cream, piano black and sage.',
+          'The camera description lives in a small ⓘ button; the Digi body wheel perches on the camera\'s top edge; the Digi shutter stays round on small phones.',
+          'New Retro Future theme: indigo night, sunset magenta and neon cyan.',
+          'On narrow phones the tab bar becomes two snapping pages of four, so labels stay readable; filter and tab pills wrap flush on small screens.',
+          'Opens faster: each tab loads on its own, and the rest are fetched quietly in the background so everything still works offline.',
+          'Backup reminders: a gentle nudge when photos have never been backed up or it has been a month — and Customise › Data shows your last backup.',
+          'If something ever goes wrong inside a tab, it shows a calm message with Try again instead of a blank screen. Your photos are never affected.',
+          'The ? guide now explains how to install Delineate on iPhone and Android.',
+          'Fixes: 16:9 on iPhone no longer spills past the screen; the sideways (rotated) layout on Android no longer squeezes the buttons; app icons refresh after an update.',
+        ],
+      },
+    ],
+  },
   {
     version: '1.3.0',
     date: 'Nov 2026',
@@ -35,22 +93,11 @@ export const CHANGELOG: Release[] = [
           'On wide screens the phones lie on their side; the Options / Gallery labels now turn with the phone and sit beside the softkeys.',
           'The RAZR keypad is a darker gunmetal with soft blue backlighting; the 6600 joystick sits on its trapezium plateau.',
           'Collections are chosen with a knurled metal rotary dial instead of a drop-down.',
-          'Opens faster: each tab now loads on its own, and the rest are fetched quietly in the background so everything still works offline.',
-          'Ten new frames in Process and Art Lab: Negative strip, Date imprint, Photo corners, Scalloped edge, Linen mat, Torn paper, Caption strip, Fine art, Photo booth and Washi tape.',
-          'Process → Crop: drag the corners or edges of the grid to resize the frame and drag the photo to line it up. A new Free shape allows any proportions.',
-          'Each Pocket Digital body now wears its own finish: silver, cobalt, rose copper, crimson, ice teal, cream, piano black and sage.',
-          'The camera description moved into a small ⓘ button, and the Digi body wheel perches on the camera\'s top edge.',
         ],
       },
       {
         name: 'Archive & data',
         items: [
-          'Smaller thumbnails — three to a row on phones — so the roll is quick to scroll.',
-          'Tap a photo to open it full screen: swipe or use the arrows to move through the roll, and Edit, Art, Album, Save or Delete from there. The ⓘ button shows its date, time, camera, look, size and location.',
-          'Location tags (Customise → Data, off by default): new camera shots remember where they were taken.',
-          'Imported photos keep the date and place they were taken, read from the file itself (JPEG).',
-          'Pinch, double-tap or scroll to zoom into a photo in the viewer; drag to look around.',
-          'Select several frames at once to add them to an album, download them as a .zip or delete them — and Undo a delete for a few seconds afterwards.',
           'Albums: create, rename and delete albums, and add any frame to one or more of them.',
           'Customise → Data: see what is stored and how much space it uses, protect storage from being cleared, download a full backup (.zip) and restore it on any device — restores are checked first and never delete anything.',
           'Fixes: archive card actions no longer cover the favourite heart on small phones; zoom ring and pixel-camera A/B buttons no longer touch.',

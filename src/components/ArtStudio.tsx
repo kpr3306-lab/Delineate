@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FrameStyle, PhotoRecord } from '../types';
-import { applyFrame, CAPTION_FRAMES, FRAME_STYLES } from '../lib/frames';
+import { applyFrame } from '../lib/frames';
+import FramePicker, { type FrameValue } from './FramePicker';
 import {
   DEFAULT_ART,
   PALETTES,
@@ -158,8 +159,8 @@ export default function ArtStudio({
   notify,
 }: ArtStudioProps) {
   const [style, setStyle] = useState<ArtStyle>('pixel');
-  const [frame, setFrame] = useState<FrameStyle>('none');
-  const [caption, setCaption] = useState('');
+  const [frameV, setFrameV] = useState<FrameValue>({ border: 'none', caption: '', scale: 1, paper: null });
+  const frameOpts = { scale: frameV.scale, paper: frameV.paper };
   const [shellAspect, setShellAspect] = useState(1);
   const [settings, setSettings] = useState<ArtSettings>({ ...DEFAULT_ART });
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -218,14 +219,14 @@ export default function ArtStudio({
 
     // debounced: fine stained glass or engraving takes a moment, and a slider fires on every step
     const t = window.setTimeout(() => {
-      const rendered = applyFrame(renderArtStill(image, style, settings, previewLongSide), frame, caption);
+      const rendered = applyFrame(renderArtStill(image, style, settings, previewLongSide), frameV.border, frameV.caption, Date.now(), frameOpts);
       canvas.width = rendered.width;
       canvas.height = rendered.height;
       setShellAspect(rendered.width / rendered.height);
       context.drawImage(rendered, 0, 0);
     }, 60);
     return () => window.clearTimeout(t);
-  }, [image, style, settings, aspect, playing, frame, caption]);
+  }, [image, style, settings, aspect, playing, frameV]);
 
   const updateSettings = <K extends keyof ArtSettings>(key: K, value: ArtSettings[K]) => {
     setSettings((current) => ({ ...current, [key]: value }));
@@ -270,7 +271,7 @@ export default function ArtStudio({
       };
     }
     setProgress(0.4);
-    const canvas = applyFrame(renderArtStill(image, style, settings, 1800), frame, caption);
+    const canvas = applyFrame(renderArtStill(image, style, settings, 1800), frameV.border, frameV.caption, Date.now(), frameOpts);
     const blob = await canvasToBlob(canvas, 'image/png');
     setProgress(1);
     return {
@@ -344,7 +345,7 @@ export default function ArtStudio({
       <div className="art-page page-enter">
         <div className="page-kicker-row">
           <div className="page-kicker">
-            <span className="eyebrow">Art Lab / 07</span>
+            <span className="eyebrow">Studio / 07 · Art</span>
             <p>Turn a memory into something stranger.</p>
           </div>
           <div className="privacy-pill">
@@ -404,7 +405,7 @@ export default function ArtStudio({
     <div className="art-page page-enter">
       <div className="page-kicker-row">
         <div className="page-kicker">
-          <span className="eyebrow">Art Lab / 07</span>
+          <span className="eyebrow">Studio / 07 · Art</span>
           <p>Turn a memory into something stranger.</p>
         </div>
         <div className="pr-top-actions">
@@ -665,25 +666,7 @@ export default function ArtStudio({
 
           {style !== 'animated' && (
             <div className="art-control-group">
-              <span className="eyebrow">Picture frame</span>
-              <div className="pr-frames">
-                {FRAME_STYLES.map((f) => (
-                  <button key={f.id} type="button" className={frame === f.id ? 'is-active' : ''} onClick={() => setFrame(f.id)} title={f.label}>
-                    <span style={{ background: f.swatch }} />
-                    <small>{f.label}</small>
-                  </button>
-                ))}
-              </div>
-              {CAPTION_FRAMES.includes(frame) && (
-                <input
-                  className="text-input pr-caption"
-                  value={caption}
-                  maxLength={40}
-                  placeholder="Write a caption on the frame…"
-                  aria-label="Frame caption"
-                  onChange={(e) => setCaption(e.target.value)}
-                />
-              )}
+              <FramePicker title="Picture frame" value={frameV} onChange={(p) => setFrameV((v) => ({ ...v, ...p }))} />
             </div>
           )}
 

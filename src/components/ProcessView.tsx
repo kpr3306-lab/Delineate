@@ -1,7 +1,9 @@
-import { BookmarkPlus, CameraOff, Check, Copy, Crop, Download, Eraser, Eye, FlipHorizontal2, ImagePlus, Layers, RotateCcw, RotateCcwSquare, RotateCwSquare, Save, SlidersHorizontal, Star, Trash2, Wand2, X } from 'lucide-react';
+import { BookmarkPlus, CameraOff, Redo2, Undo2, Check, Copy, Crop, Download, Eraser, Eye, FlipHorizontal2, ImagePlus, Layers, RotateCcw, RotateCcwSquare, RotateCwSquare, Save, SlidersHorizontal, Star, Trash2, Wand2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import type { CropAspect, Effects, EditTarget, GrainSize, Look, PhotoRecord, ProcessConfig, StampStyle, UserPreset } from '../types';
-import { CAPTION_FRAMES, FRAME_STYLES } from '../lib/frames';
+import FramePicker from './FramePicker';
+import WatermarkControls from './WatermarkControls';
+import { useHistory } from '../lib/useHistory';
 import { BASE_LOOK } from '../lib/filters';
 import { BASE_EFFECTS, PRESETS, PRESET_GROUPS, STAMP_STYLES, configForPreset, cropFit, cropFromBox, cropView, getPreset, processedAspect, renderProcessed } from '../lib/process';
 import { FX_GROUPS } from '../lib/fx';
@@ -17,6 +19,8 @@ type ProcessViewProps = {
   onSave: (record: PhotoRecord) => Promise<void>;
   onImport: () => void;
   notify: (message: string, tone?: 'default' | 'warning') => void;
+  /** Heading when Process is opened inside another tab (Studio › Frames). */
+  eyebrow?: string;
 };
 
 const ADJUST: { key: keyof Look; label: string; min: number; max: number; step: number; fmt?: (v: number) => string }[] = [
@@ -52,7 +56,7 @@ const GRAIN_SIZES: GrainSize[] = ['fine', 'medium', 'coarse'];
 const MINE = 'Mine';
 const MINE_PREFIX = 'mine:';
 /** Effects that belong to one photo (crop, extra frames), never to a preset. */
-const PHOTO_KEYS = ['doubleId', 'doubleMix', 'booth', 'boothIds', 'rotate', 'flip', 'straighten', 'zoom', 'cropX', 'cropY', 'cropRatio', 'stampDate', 'caption'] as const;
+const PHOTO_KEYS = ['doubleId', 'doubleMix', 'booth', 'boothIds', 'rotate', 'flip', 'straighten', 'zoom', 'cropX', 'cropY', 'cropRatio', 'stampDate', 'caption', 'watermark'] as const;
 const STAMP_SAMPLE: Record<StampStyle, string> = {
   none: '—', date: "'26 11 18", led: "11 18 '26", lcd: '2026.11.18', dymo: '18 NOV', ink: 'Nov 18', editorial: 'NOV 18', camcorder: 'PLAY ▶', rec: 'REC',
 };
@@ -83,8 +87,8 @@ const mineSwatch = (p: UserPreset) =>
   `linear-gradient(135deg, ${p.look.highlightTint ?? '#efe3cf'}, ${p.look.tone ?? (p.look.warmth >= 0 ? '#d9a383' : '#7fa8c9')}, ${p.look.shadowTint ?? '#4f4a42'})`;
 const groupOf = (presetId: string) => (presetId.startsWith(MINE_PREFIX) ? MINE : getPreset(presetId).group);
 
-export default function ProcessView({ photos, target, onTarget, onSave, onImport, notify }: ProcessViewProps) {
-  const [cfg, setCfg] = useState(() => target?.record?.process ?? configForPreset('none'));
+export default function ProcessView({ photos, target, onTarget, onSave, onImport, notify, eyebrow = 'Process / 03' }: ProcessViewProps) {
+  const [cfg, setCfg, history] = useHistory(() => target?.record?.process ?? configForPreset('none'));
   const [group, setGroup] = useState(() => groupOf(cfg.presetId));
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [double, setDouble] = useState<HTMLImageElement | null>(null);
@@ -107,10 +111,23 @@ export default function ProcessView({ photos, target, onTarget, onSave, onImport
   const date = target?.record?.createdAt ?? Date.now();
   const e = cfg.effects;
 
+  useEffect(() => {
+    const onKey = (ev: KeyboardEvent) => {
+      if (!(ev.ctrlKey || ev.metaKey) || (ev.target as HTMLElement)?.closest('input, textarea, [contenteditable]')) return;
+      const k = ev.key.toLowerCase();
+      if (k === 'z' && !ev.shiftKey) history.undo();
+      else if (k === 'y' || (k === 'z' && ev.shiftKey)) history.redo();
+      else return;
+      ev.preventDefault();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [history]);
+
   // New target → restore its saved configuration (re-editable from the archive).
   useEffect(() => {
     const restored = target?.record?.process ?? configForPreset('none');
-    setCfg({ ...restored, effects: { ...BASE_EFFECTS, ...restored.effects } }); // older saves lack newer effects
+    history.reset({ ...restored, effects: { ...BASE_EFFECTS, ...restored.effects } }); // older saves lack newer effects; a new photo starts a fresh undo history
     setGroup(groupOf(restored.presetId));
     setStripCam(Boolean(target?.record?.camStripped && target.record.camRaw));
   }, [target]);
@@ -433,7 +450,7 @@ export default function ProcessView({ photos, target, onTarget, onSave, onImport
       <div className="process-page page-enter">
         <div className="page-kicker-row">
           <div className="page-kicker">
-            <span className="eyebrow">Process / 03</span>
+            <span className="eyebrow">{eyebrow}</span>
             <p>Grade your prints — film stocks, effects, frames — or leave them honest.</p>
           </div>
         </div>
@@ -461,7 +478,7 @@ export default function ProcessView({ photos, target, onTarget, onSave, onImport
     <div className="process-page page-enter">
       <div className="page-kicker-row">
         <div className="page-kicker">
-          <span className="eyebrow">Process / 03</span>
+          <span className="eyebrow">{eyebrow}</span>
           <p>Grade your prints — film stocks, effects, frames — or leave them honest.</p>
         </div>
         <div className="pr-top-actions is-two-row">
@@ -659,6 +676,14 @@ export default function ProcessView({ photos, target, onTarget, onSave, onImport
             >
               <Eye size={14} /> Hold to compare
             </button>
+            <span className="pr-undo">
+              <button type="button" className="round-icon" onClick={history.undo} disabled={!history.canUndo} aria-label="Undo" title="Undo (Ctrl Z)">
+                <Undo2 size={15} />
+              </button>
+              <button type="button" className="round-icon" onClick={history.redo} disabled={!history.canRedo} aria-label="Redo" title="Redo (Ctrl Shift Z)">
+                <Redo2 size={15} />
+              </button>
+            </span>
             <span className="pr-name">{target.fileName} · {presetName(cfg.presetId)}</span>
           </div>
         </section>
@@ -814,25 +839,25 @@ export default function ProcessView({ photos, target, onTarget, onSave, onImport
               </div>
 
               <div className="pr-field">
-                <span className="eyebrow">Film frame border</span>
-                <div className="pr-frames">
-                  {FRAME_STYLES.map((f) => (
-                    <button key={f.id} type="button" className={e.border === f.id ? 'is-active' : ''} onClick={() => setFx('border', f.id)} title={f.label}>
-                      <span style={{ background: f.swatch }} />
-                      <small>{f.label}</small>
-                    </button>
-                  ))}
-                </div>
-                {CAPTION_FRAMES.includes(e.border) && (
-                  <input
-                    className="text-input pr-caption"
-                    value={e.caption}
-                    maxLength={40}
-                    placeholder="Write a caption on the frame…"
-                    aria-label="Frame caption"
-                    onChange={(ev) => setFx('caption', ev.target.value)}
-                  />
-                )}
+                <FramePicker
+                  title="Frame"
+                  value={{ border: e.border, caption: e.caption, scale: e.frameScale ?? 1, paper: e.framePaper ?? null }}
+                  onChange={(p) =>
+                    setCfg((c) => ({
+                      ...c,
+                      effects: {
+                        ...c.effects,
+                        ...(p.border !== undefined && { border: p.border }),
+                        ...(p.caption !== undefined && { caption: p.caption }),
+                        ...(p.scale !== undefined && { frameScale: p.scale }),
+                        ...(p.paper !== undefined && { framePaper: p.paper }),
+                      },
+                    }))
+                  }
+                />
+              </div>
+              <div className="pr-field">
+                <WatermarkControls value={e.watermark} onChange={(wm) => setCfg((c) => ({ ...c, effects: { ...c.effects, watermark: wm } }))} />
               </div>
 
               <div className="pr-field">

@@ -11,6 +11,7 @@ import {
   Lock,
   PackageOpen,
   Search,
+  Sparkles,
   Trash2,
   X,
 } from 'lucide-react';
@@ -21,11 +22,13 @@ import { downloadBlob, fileSlug, formatDate, pad } from '../lib/utils';
 import { EmptyState, Modal, Spinner, Thumb, useObjectUrl, type ToastAction } from './ui';
 import AlbumPicker from './AlbumPicker';
 import PhotoViewer from './PhotoViewer';
+import TidyUp from './TidyUp';
 
 type LibraryViewProps = {
   photos: PhotoRecord[];
   onEdit: (record: PhotoRecord) => void;
   onArt: (record: PhotoRecord) => void;
+  onFrame: (record: PhotoRecord) => void;
   onDevelop: (record: PhotoRecord) => void;
   onFavorite: (record: PhotoRecord) => void;
   onRename: (record: PhotoRecord, name: string) => void;
@@ -121,6 +124,7 @@ export default function LibraryView({
   photos,
   onEdit,
   onArt,
+  onFrame,
   onDevelop,
   onFavorite,
   onRename,
@@ -173,6 +177,7 @@ export default function LibraryView({
     return () => window.removeEventListener('keydown', onKey);
   }, [picked]);
   const [viewIdx, setViewIdx] = useState<number | null>(null);
+  const [tidying, setTidying] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -392,6 +397,11 @@ export default function LibraryView({
             <button type="submit" className="button button-dark">Create</button>
           </form>
         )}
+        {photos.length > 1 && (
+          <button type="button" className="alb-chip alb-tidy" onClick={() => setTidying(true)}>
+            <Sparkles size={14} /> Tidy up
+          </button>
+        )}
         {filtered.length > 0 && (
           <button type="button" className={`alb-chip alb-select ${picked ? 'is-active' : ''}`} onClick={() => setPicked((s) => (s ? null : new Set()))} aria-pressed={Boolean(picked)}>
             <CheckSquare size={14} /> {picked ? 'Cancel' : 'Select'}
@@ -480,10 +490,11 @@ export default function LibraryView({
           onClose={() => setViewIdx(null)}
           onEdit={onEdit}
           onArt={onArt}
+          onFrame={onFrame}
           onDevelop={onDevelop}
           onFavorite={onFavorite}
           onAlbum={(record) => setAlbumFor([record.id])}
-          onSave={(record) => downloadBlob(record.blob, `${fileSlug(record.name)}.${extensionFor(record)}`)}
+          onSave={(record) => downloadBlob(record.fullRes ?? record.blob, `${fileSlug(record.name)}.${record.fullRes ? (record.fullRes.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg') : extensionFor(record)}`)}
           onDelete={(record) => setPendingDelete([record])}
           onRename={onRename}
         />
@@ -511,6 +522,16 @@ export default function LibraryView({
         </div>,
           document.querySelector('.app-shell') ?? document.body,
         )}
+      {tidying && (
+        <TidyUp
+          photos={photos}
+          onClose={() => setTidying(false)}
+          onDelete={(records) => {
+            setTidying(false);
+            setPendingDelete(records);
+          }}
+        />
+      )}
       {albumFor && <AlbumPicker photoIds={albumFor} albums={albums} onSave={onSaveCollection} onClose={() => setAlbumFor(null)} />}
       {albumDelete && (
         <Modal title="Delete this album?" eyebrow="Archive / Albums" onClose={() => setAlbumDelete(null)}>

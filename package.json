@@ -1,7 +1,7 @@
 {
   "name": "delineate",
   "private": true,
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Delineate — made to remember.",
   "type": "module",
   "scripts": {

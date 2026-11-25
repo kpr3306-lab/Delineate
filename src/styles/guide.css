@@ -144,3 +144,12 @@
 .guide-credit { margin: 14px 0 0; color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-align: center; }
 .guide-credit b { color: var(--ink); font-weight: 500; }
 .guide-credit a { color: var(--accent-deep); text-decoration: underline; text-underline-offset: 3px; }
+
+.guide-install { display: grid; gap: 8px; margin-top: 16px; padding: 15px; border: 1px solid var(--line); border-radius: 12px; background: rgb(var(--paper-rgb) / 0.5); }
+.guide-install h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-family: var(--serif); font-size: 21px; font-weight: 400; }
+.guide-install > p { margin: 0; color: var(--ink-soft); font-size: 12.5px; }
+.guide-install-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.guide-install-cols b { display: block; margin-bottom: 4px; font-size: 12.5px; }
+.guide-install ol { display: grid; gap: 3px; margin: 0; padding-left: 18px; color: var(--ink-soft); font-size: 12px; line-height: 1.5; }
+.guide-install ol svg { vertical-align: -2px; }
+.guide-install small { color: var(--muted); font-size: 11px; line-height: 1.5; }

@@ -14,6 +14,9 @@ import {
   Accessibility,
   SlidersHorizontal,
   Sparkles,
+  Smartphone,
+  Share,
+  Frame,
   Volume2,
   Wand2,
   WifiOff,
@@ -23,6 +26,8 @@ import type { Album, Collection, EditTarget, PhotoRecord } from './types';
 import { getAllPhotos, deletePhoto, savePhoto, getAllCollections, saveCollection, deleteCollection, getAllJournals } from './lib/db';
 import { loadImage, pad } from './lib/utils';
 import { importedRecord } from './lib/importPhoto';
+import ErrorBoundary from './components/ErrorBoundary';
+import { backupNudge } from './lib/backupNudge';
 import {
   getSoundPack, haptic, isClickyOn, isHapticsOn, isSoundOn, playTap, setClickyOn, setHapticsOn, setSoundOn, setSoundPack,
   SOUND_PACKS, type SoundPack,
@@ -36,6 +41,7 @@ const LAZY = {
   journal: () => import('./components/JournalView'),
   collage: () => import('./components/CollageView'),
   art: () => import('./components/ArtStudio'),
+  frames: () => import('./components/FrameStudio'),
   memories: () => import('./components/memories/MemoriesView'),
   data: () => import('./components/DataPanel'),
 };
@@ -45,6 +51,7 @@ const LibraryView = lazy(LAZY.library);
 const JournalView = lazy(LAZY.journal);
 const CollageView = lazy(LAZY.collage);
 const ArtStudio = lazy(LAZY.art);
+const FrameStudio = lazy(LAZY.frames);
 const MemoriesView = lazy(LAZY.memories);
 const DataPanel = lazy(LAZY.data);
 import { ControlsContext, Modal, Range, Spinner, Toast, Toggle, type ControlStyle, type ToastAction } from './components/ui';
@@ -66,7 +73,7 @@ const SOUND_GLYPH: Record<SoundPack, string> = {
 };
 
 type Tab = 'camera' | 'develop' | 'process' | 'archive' | 'memories' | 'journal' | 'collage' | 'lab';
-type Theme = 'light' | 'dark' | 'vintage' | 'pastel' | 'darkroom' | 'sage' | 'midnight' | 'mono';
+type Theme = 'light' | 'dark' | 'vintage' | 'pastel' | 'darkroom' | 'sage' | 'midnight' | 'retro' | 'mono';
 type ToastState = { id: number; message: string; tone: 'default' | 'warning'; action?: ToastAction };
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 
@@ -78,7 +85,7 @@ const TABS = [
   { id: 'memories' as const, label: 'Memories', icon: Gem },
   { id: 'journal' as const, label: 'Journal', icon: BookHeart },
   { id: 'collage' as const, label: 'Collage', icon: LayoutGrid },
-  { id: 'lab' as const, label: 'Art Lab', icon: Sparkles },
+  { id: 'lab' as const, label: 'Studio', icon: Sparkles },
 ];
 
 const THEMES: { id: Theme; label: string; color: string; swatch: string }[] = [
@@ -89,6 +96,7 @@ const THEMES: { id: Theme; label: string; color: string; swatch: string }[] = [
   { id: 'darkroom', label: 'Darkroom', color: '#0d0605', swatch: 'linear-gradient(135deg,#0d0605 50%,#ff4a3a 50%)' },
   { id: 'sage', label: 'Sage', color: '#e9eee2', swatch: 'linear-gradient(135deg,#e9eee2 50%,#4f7a5a 50%)' },
   { id: 'midnight', label: 'Midnight', color: '#0e1424', swatch: 'linear-gradient(135deg,#0e1424 50%,#7aa2ff 50%)' },
+  { id: 'retro', label: 'Retro Future', color: '#140b2e', swatch: 'linear-gradient(135deg,#140b2e 50%,#ff5ea8 50%,#ffb347)' },
   { id: 'mono', label: 'Contrast', color: '#ffffff', swatch: 'linear-gradient(135deg,#ffffff 50%,#000000 50%)' },
 ];
 const ACCENTS = ['', '#c65d36', '#d93a2b', '#2f7d6d', '#3f6fd0', '#8d5bd1', '#d9a43a', '#e2568a'];
@@ -123,7 +131,7 @@ function GuideModal({ onClose }: { onClose: () => void }) {
     ['Archive', 'Your private storage. Favourite, search, download, or re-edit a processed frame — its settings are remembered.'],
     ['Memories', 'Camera passport, a daily handful of forgotten frames to rediscover, time capsules, a gallery room, a memory wall and a printable yearbook.'],
     ['Journal', 'Scrapbook books with themed pages, photos, text, doodles and 80+ decorations. Download any book as a PDF.'],
-    ['Collage & Art Lab', 'Compose multi-photo layouts, or turn a print into pixel art, swirls, facets or a looping GIF — with picture frames.'],
+    ['Collage & Studio', 'Compose multi-photo layouts. In the Studio, turn a print into pixel art, swirls, facets or a looping GIF (Art), or frame it with your own caption, size it for print in inches or cm, and lay prints out as a true-size PDF (Frames).'],
   ];
   return (
     <Modal title="Welcome to Delineate" eyebrow="Made to remember" wide onClose={onClose}>
@@ -138,6 +146,41 @@ function GuideModal({ onClose }: { onClose: () => void }) {
           </section>
         ))}
       </div>
+      <section className="guide-install" aria-label="Install the app">
+        <h3>
+          <Smartphone size={16} /> Install it like an app
+        </h3>
+        <p>Full screen, works offline, and opens from your home screen. Nothing is uploaded.</p>
+        <div className="guide-install-cols">
+          <div>
+            <b>iPhone &amp; iPad (Safari)</b>
+            <ol>
+              <li>Open Delineate in <strong>Safari</strong>.</li>
+              <li>
+                Tap <strong>Share</strong> <Share size={12} /> at the bottom of the screen.
+              </li>
+              <li>
+                Scroll down, tap <strong>Add to Home Screen</strong>, then <strong>Add</strong>.
+              </li>
+              <li>Open it from the new icon on your home screen.</li>
+            </ol>
+          </div>
+          <div>
+            <b>Android (Chrome)</b>
+            <ol>
+              <li>Open Delineate in <strong>Chrome</strong>.</li>
+              <li>
+                Tap the <strong>⋮</strong> menu at the top right.
+              </li>
+              <li>
+                Tap <strong>Install app</strong> (or <strong>Add to Home screen</strong>), then <strong>Install</strong>.
+              </li>
+              <li>Open it from your home screen or app drawer.</li>
+            </ol>
+          </div>
+        </div>
+        <small>Your photos stay in the browser you install from — add it from the same browser you have been using, or move them with a backup (Customise › Data).</small>
+      </section>
       <div className="guide-shortcuts">
         <span>
           <Keyboard size={15} /> Shortcuts
@@ -181,6 +224,9 @@ export default function App() {
   const [processTarget, setProcessTarget] = useState<EditTarget | null>(null);
   const [developFocus, setDevelopFocus] = useState<string | null>(null);
   const [artSource, setArtSource] = useState<PhotoRecord | null>(null);
+  const [frameSource, setFrameSource] = useState<PhotoRecord | null>(null);
+  const [studio, setStudio] = useState<'art' | 'frames'>('art');
+  const [navPage, setNavPage] = useState(0);
   const [guideOpen, setGuideOpen] = useState(() => !read('delineate-welcomed'));
   const [toast, setToast] = useState<ToastState | null>(null);
   const [filmNumber, setFilmNumber] = useState(1);
@@ -274,6 +320,18 @@ export default function App() {
         if (cancelled) return;
         setPhotos(records);
         photosRef.current = records;
+        // a gentle backup reminder, a few seconds in (at most every few days)
+        window.setTimeout(() => {
+          const nudge = backupNudge(records.length);
+          if (nudge)
+            notify(nudge, 'default', {
+              label: 'Back up',
+              run: () => {
+                setCzTab('data');
+                setSettingsOpen(true);
+              },
+            });
+        }, 4000);
         const stored = Number(read(FILM_COUNT_KEY));
         const next = stored > 0 ? stored : records.length + 1;
         setFilmNumber(next);
@@ -373,6 +431,7 @@ export default function App() {
     await deletePhoto(id);
     setPhotos((current) => current.filter((photo) => photo.id !== id));
     setArtSource((current) => (current?.id === id ? null : current));
+    setFrameSource((current) => (current?.id === id ? null : current));
     setProcessTarget((current) => (current?.record?.id === id ? null : current));
   }, []);
 
@@ -395,16 +454,31 @@ export default function App() {
       .then(async (img) => {
         const record = await importedRecord(file, img);
         await handleSave(record);
-        if (here === 'lab') setArtSource(record);
-        notify(here === 'lab' ? 'Imported and opened in the Art Lab.' : 'Imported to your archive.');
+        if (here === 'lab') (studio === 'frames' ? setFrameSource : setArtSource)(record);
+        notify(here === 'lab' ? `Imported and opened in Studio › ${studio === 'frames' ? 'Frames' : 'Art'}.` : 'Imported to your archive.');
       })
       .catch(() => notify('That image could not be opened.', 'warning'));
   };
 
-  // the Art Lab editor closes when you leave the tab
+  // the Studio editors close when you leave the tab
   useEffect(() => {
-    if (tab !== 'lab') setArtSource(null);
+    if (tab !== 'lab') {
+      setArtSource(null);
+      setFrameSource(null);
+    }
   }, [tab]);
+  useEffect(() => {
+    const nav = navRef.current;
+    const active = nav?.querySelector<HTMLElement>('button.is-active');
+    if (!nav || !active || nav.scrollWidth <= nav.clientWidth + 2) return;
+    const page = Math.floor((active.offsetLeft - nav.offsetLeft + 1) / nav.clientWidth);
+    nav.scrollTo({ left: page * nav.clientWidth, behavior: 'smooth' });
+  }, [tab]);
+  const openFrames = (record: PhotoRecord) => {
+    setFrameSource(record);
+    setStudio('frames');
+    go('lab');
+  };
 
   const openProcess = (record: PhotoRecord) => {
     setProcessTarget({ record, blob: record.blob, fileName: record.name });
@@ -433,7 +507,15 @@ export default function App() {
           </span>
         </button>
 
-        <nav ref={navRef} className="main-nav" aria-label="Sections">
+        <nav
+          ref={navRef}
+          className="main-nav"
+          aria-label="Sections"
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            if (el.clientWidth) setNavPage(Math.round(el.scrollLeft / el.clientWidth));
+          }}
+        >
           {TABS.map((item) => {
             const Icon = item.icon;
             const badge = item.id === 'develop' ? roll.length : item.id === 'archive' ? developed.length : 0;
@@ -452,6 +534,12 @@ export default function App() {
             );
           })}
         </nav>
+        {/* on the narrowest phones the tab bar is two snapping pages of four; these dots show which */}
+        <span className="nav-dots" aria-hidden="true">
+          {[0, 1].map((i) => (
+            <i key={i} className={navPage === i ? 'is-on' : ''} onClick={() => navRef.current?.scrollTo({ left: i * navRef.current.clientWidth, behavior: 'smooth' })} />
+          ))}
+        </span>
 
         <div className="header-right">
           {offline && (
@@ -489,6 +577,7 @@ export default function App() {
       </header>
 
       <main className="app-main" key={tab}>
+        <ErrorBoundary key={tab} area={TABS.find((t) => t.id === tab)?.label ?? 'Delineate'}>
         <Suspense fallback={<div className="app-loading"><Spinner label="Opening…" /></div>}>
         {loading ? (
           <div className="app-loading">
@@ -532,8 +621,10 @@ export default function App() {
             onEdit={openProcess}
             onArt={(record) => {
               setArtSource(record);
+              setStudio('art');
               go('lab');
             }}
+            onFrame={openFrames}
             onDevelop={(record) => {
               setDevelopFocus(record.id);
               go('develop');
@@ -575,18 +666,26 @@ export default function App() {
         ) : tab === 'journal' ? (
           <JournalView photos={developed} notify={notify} />
         ) : tab === 'collage' ? (
-          <CollageView photos={developed} onSave={handleSave} notify={notify} />
+          <CollageView photos={developed} onSave={handleSave} notify={notify} onFrame={openFrames} />
         ) : (
-          <ArtStudio
-            photos={developed}
-            source={artSource}
-            onSource={setArtSource}
-            onSave={handleSave}
-            onImport={openImport}
-            notify={notify}
-          />
+          <div className="studio-shell">
+            <div className="segmented studio-switch" role="tablist" aria-label="Studio">
+              <button type="button" role="tab" aria-selected={studio === 'art'} className={studio === 'art' ? 'is-active' : ''} onClick={() => setStudio('art')}>
+                <Sparkles size={13} /> Art
+              </button>
+              <button type="button" role="tab" aria-selected={studio === 'frames'} className={studio === 'frames' ? 'is-active' : ''} onClick={() => setStudio('frames')}>
+                <Frame size={13} /> Frames
+              </button>
+            </div>
+            {studio === 'art' ? (
+              <ArtStudio photos={developed} source={artSource} onSource={setArtSource} onSave={handleSave} onImport={openImport} notify={notify} />
+            ) : (
+              <FrameStudio photos={developed} source={frameSource} onSource={setFrameSource} onSave={handleSave} onImport={openImport} notify={notify} />
+            )}
+          </div>
         )}
         </Suspense>
+        </ErrorBoundary>
       </main>
 
 

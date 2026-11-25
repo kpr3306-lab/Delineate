@@ -350,6 +350,31 @@ function spacing(ctx: CanvasRenderingContext2D, px: number) {
   if ('letterSpacing' in ctx) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${px}px`;
 }
 
+const WM_FONT = { hand: '"Segoe Print", "Bradley Hand", "Comic Sans MS", cursive', serif: '"Instrument Serif", Georgia, serif', sans: '"Space Grotesk Variable", system-ui, sans-serif', mono: '"DM Mono", ui-monospace, monospace' } as const;
+
+/** The photographer's signature, drawn on the photo itself (inside any frame), sized to the photo. */
+export function watermark(canvas: HTMLCanvasElement, wm: Effects['watermark']) {
+  const text = wm?.text.trim();
+  if (!wm || !text) return canvas;
+  const { width: w, height: h } = canvas;
+  const ctx = canvas.getContext('2d')!;
+  const px = Math.max(8, (Math.min(w, h) * Math.min(14, Math.max(2, wm.size))) / 100);
+  const m = px * 0.8;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, Math.max(0.1, wm.opacity));
+  ctx.font = `${wm.font === 'serif' ? 'italic ' : wm.font === 'sans' ? '600 ' : ''}${px}px ${WM_FONT[wm.font]}`;
+  ctx.fillStyle = wm.ink === 'dark' ? 'rgba(20,18,15,0.92)' : 'rgba(255,255,255,0.95)';
+  ctx.shadowColor = wm.ink === 'dark' ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.45)';
+  ctx.shadowBlur = px * 0.18;
+  ctx.textAlign = wm.pos === 'c' ? 'center' : wm.pos.endsWith('r') ? 'right' : 'left';
+  ctx.textBaseline = wm.pos === 'c' ? 'middle' : wm.pos.startsWith('t') ? 'top' : 'bottom';
+  const x = wm.pos === 'c' ? w / 2 : wm.pos.endsWith('r') ? w - m : m;
+  const y = wm.pos === 'c' ? h / 2 : wm.pos.startsWith('t') ? m : h - m;
+  ctx.fillText(text, x, y, w - m * 2);
+  ctx.restore();
+  return canvas;
+}
+
 export function stamp(canvas: HTMLCanvasElement, e: Pick<Effects, 'stamp' | 'stampPos' | 'stampColor' | 'stampDate'>, date: number) {
   const style = e.stamp;
   if (!style || style === 'none') return canvas;
@@ -614,7 +639,7 @@ export function renderProcessed(
     ctx.fillRect(0, 0, sheet.width, sheet.height);
     shots.forEach((shot, i) => {
       // only the photo being edited carries its crop; the other booth frames are centred
-      const frame = stamp(processSingle(shot, cfg, cell, 1, null, i === 0), e, opts.date);
+      const frame = watermark(stamp(processSingle(shot, cfg, cell, 1, null, i === 0), e, opts.date), i === 0 ? e.watermark : null);
       ctx.drawImage(frame, gap + (i % 2) * (cell + gap), gap + Math.floor(i / 2) * (cell + gap));
     });
     ctx.fillStyle = '#2a2622';
@@ -623,8 +648,8 @@ export function renderProcessed(
     ctx.fillText('Delineate · Photo Booth', sheet.width / 2, sheet.height - foot * 0.52);
     ctx.font = `${Math.round(foot * 0.16)}px "DM Mono", monospace`;
     ctx.fillText(new Date(opts.date).toDateString().toUpperCase(), sheet.width / 2, sheet.height - foot * 0.2);
-    return applyFrame(sheet, e.border, e.caption, opts.date);
+    return applyFrame(sheet, e.border, e.caption, opts.date, { scale: e.frameScale, paper: e.framePaper });
   }
   const single = processSingle(img, cfg, opts.longSide, undefined, opts.double);
-  return applyFrame(stamp(single, e, opts.date), e.border, e.caption, opts.date);
+  return applyFrame(watermark(stamp(single, e, opts.date), e.watermark), e.border, e.caption, opts.date, { scale: e.frameScale, paper: e.framePaper });
 }
