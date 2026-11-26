@@ -483,3 +483,11 @@
 .cal-tpl.is-fullbleed i { background: linear-gradient(transparent 58%, rgba(255, 255, 255, 0.9) 58% 94%, transparent 94%), linear-gradient(135deg, #e0a37a, #5f7f99); }
 .cal-tpl.is-polaroid i { background: linear-gradient(#fff 0 0) 6px 4px / 22px 24px no-repeat, linear-gradient(#8fb0c6 0 0) 8px 6px / 18px 17px no-repeat, #f6f1e7; }
 .cal-tpl.is-minimal i { background: linear-gradient(#8fb0c6 0 0) 9px 6px / 16px 13px no-repeat, #fff; }
+
+/* the card/calendar stage never grows past the screen: its hint line wraps instead of widening it */
+.cs-stage,
+.cs-stage > * { min-width: 0; }
+.cs-stage .pr-name { min-width: 0; }
+@media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
+  .cs-stage .pr-name { white-space: normal; line-height: 1.35; }
+}
