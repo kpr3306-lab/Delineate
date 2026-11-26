@@ -1,8 +1,11 @@
 {
   "name": "Delineate — Made to Remember",
   "short_name": "Delineate",
-  "description": "A film camera, darkroom, processing lab, journal and collage studio. Works offline.",
+  "description": "A film camera, darkroom, photo lab, journal, collage and print studio. Private and works offline.",
+  "id": "/",
   "start_url": "/",
+  "lang": "en",
+  "dir": "ltr",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

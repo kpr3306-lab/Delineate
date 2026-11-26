@@ -177,3 +177,16 @@ Self-checks: `node scripts/print.check.ts`, `node scripts/crop.check.ts`, `node 
 - **Install guide** — the **?** panel explains how to add Delineate to the home screen on iPhone (Safari) and Android (Chrome).
 
 All self-checks: `node scripts/print.check.ts`, `node scripts/crop.check.ts`, `node scripts/exif.check.ts`, `node scripts/dupes.check.ts`, `node scripts/backup.check.ts`.
+
+---
+
+## Android app (APK)
+
+Delineate is an installable web app, so the Android app is a **Trusted Web Activity**: the live site (https://delineate-one.vercel.app) running full screen as a real app, with every feature, offline use and automatic updates.
+
+1. Open **[pwabuilder.com](https://www.pwabuilder.com)**, enter `https://delineate-one.vercel.app` and choose **Package for stores → Android**.
+2. Pick a package ID once and keep it forever (e.g. `com.kpr3306.delineate`). Download the package: it contains an installable **`.apk`**, an **`.aab`** for Google Play, the **signing key** — keep it safe; every future update must be signed with it — and **`assetlinks.json`**.
+3. Copy `assetlinks.json` into `public/.well-known/assetlinks.json`, commit and push. Vercel serves it (as JSON, see `vercel.json`) at `https://delineate-one.vercel.app/.well-known/assetlinks.json`; this proves the app and site belong together and removes the browser address bar.
+4. Install the `.apk` on a phone (allow “install unknown apps”), or upload the `.aab` to the Google Play Console.
+
+Updating the site updates the app — no new APK needed unless the icon, name or package settings change. The app shares Chrome's storage for the site, so photos taken in Chrome on that phone appear in the app too.
