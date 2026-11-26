@@ -12,6 +12,8 @@ import { canShareImages, shareImage } from '../lib/share';
 import FramePicker, { type FrameValue } from './FramePicker';
 import WatermarkControls from './WatermarkControls';
 import PrintProjects, { PROJECTS, type ProjectKind } from './PrintProjects';
+import CardStudio from './CardStudio';
+import CalendarStudio from './CalendarStudio';
 import ProcessView from './ProcessView';
 import { PhotoPicker, Range, Spinner, Toggle, useObjectUrl } from './ui';
 
@@ -349,7 +351,7 @@ export default function FrameStudio({ photos, source, onSource, onSave, onImport
           </button>
         ))}
       </div>
-      {project && <PrintProjects kind={project} photos={photos} source={source} onClose={() => setProject(null)} notify={notify} />}
+      {(project === 'contact' || project === 'test') && <PrintProjects kind={project} photos={photos} source={source} onClose={() => setProject(null)} notify={notify} />}
     </section>
   );
   const picker = picking && (
@@ -364,6 +366,10 @@ export default function FrameStudio({ photos, source, onSource, onSave, onImport
       onClose={() => setPicking(false)}
     />
   );
+
+  // the greeting card maker takes the whole tab while it is open
+  if (project === 'calendar') return <CalendarStudio photos={photos} onClose={() => setProject(null)} notify={notify} />;
+  if (project === 'card') return <CardStudio photos={photos} start={source} onClose={() => setProject(null)} onSave={onSave} notify={notify} />;
 
   // Edit: the whole Process editor, inside this tab; saving or discarding comes back here
   if (editing) {

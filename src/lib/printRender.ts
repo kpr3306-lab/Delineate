@@ -75,7 +75,7 @@ export async function buildSheet(items: SheetItem[], paper: { w: number; h: numb
     ctx.imageSmoothingQuality = 'high';
     // printer calibration (Printer test page): undo the printer's own shrink or stretch
     const k = printScale();
-    if (k !== 1) ctx.setTransform(k, 0, 0, k, ((1 - k) * c.width) / 2, ((1 - k) * c.height) / 2);
+    if (k.x !== 1 || k.y !== 1) ctx.setTransform(k.x, 0, 0, k.y, ((1 - k.x) * c.width) / 2, ((1 - k.y) * c.height) / 2);
     for (const p of page) {
       const img = images.get(p.id)!;
       const x = p.x * SHEET_DPI;

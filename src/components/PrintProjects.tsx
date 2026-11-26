@@ -2,14 +2,14 @@ import { CalendarDays, FileDown, Images, LayoutGrid, Mail, Ruler } from 'lucide-
 import { useState } from 'react';
 import type { PhotoRecord } from '../types';
 import { PAPERS } from '../lib/print';
-import { CARD_SIZES, calendarPdf, cardPdf, contactSheetPdf, printScale, setPrintScale, testPagePdf } from '../lib/printProjects';
+import { contactSheetPdf, printScale, setPrintScale, testPagePdf } from '../lib/printProjects';
 import { downloadBlob } from '../lib/utils';
-import { Modal, PhotoPicker, Spinner, Thumb, Toggle } from './ui';
+import { Modal, PhotoPicker, Spinner } from './ui';
 
 export type ProjectKind = 'card' | 'calendar' | 'contact' | 'test';
 export const PROJECTS: { id: ProjectKind; label: string; note: string; icon: typeof Mail }[] = [
-  { id: 'card', label: 'Greeting card', note: 'Folded, with your message inside', icon: Mail },
-  { id: 'calendar', label: 'Photo calendar', note: 'Twelve months, one photo each', icon: CalendarDays },
+  { id: 'card', label: 'Greeting card', note: 'Templates, borders, stickers · A5 or A6', icon: Mail },
+  { id: 'calendar', label: 'Photo calendar', note: 'Layouts, date styles, a photo per month', icon: CalendarDays },
   { id: 'contact', label: 'Contact sheet', note: 'A roll of frames on one page', icon: LayoutGrid },
   { id: 'test', label: 'Printer test page', note: 'Measure once, print true to size', icon: Ruler },
 ];
@@ -24,28 +24,16 @@ export default function PrintProjects({ kind, photos, source, onClose, notify }:
   const [picking, setPicking] = useState(false);
   const [paperId, setPaperId] = useState('a4');
   const paper = PAPERS.find((p) => p.id === paperId)!;
-  // card
-  const [cardPhoto, setCardPhoto] = useState<PhotoRecord | null>(source ?? photos[0] ?? null);
-  const [cardSize, setCardSize] = useState<(typeof CARD_SIZES)[number]['id']>('a6');
-  const [message, setMessage] = useState('');
-  const [font, setFont] = useState<'hand' | 'serif'>('hand');
-  const [from, setFrom] = useState('');
-  // calendar + contact sheet: chosen photos (empty = automatic)
+  // contact sheet: chosen photos (empty = all)
   const [picked, setPicked] = useState<string[]>([]);
-  const now = new Date();
-  const [year, setYear] = useState(now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear());
-  const [startMonth, setStartMonth] = useState(0);
-  const [monday, setMonday] = useState(true);
-  const [withCover, setWithCover] = useState(true);
   const [title, setTitle] = useState('');
   const [order, setOrder] = useState<'old' | 'new'>('old');
   // test page
-  const [measured, setMeasured] = useState('');
+  const [across, setAcross] = useState('');
+  const [down, setDown] = useState('');
   const [scale, setScale] = useState(printScale());
 
-  const auto = (n: number) => [...photos.filter((p) => p.favorite), ...photos.filter((p) => !p.favorite).sort((a, b) => b.createdAt - a.createdAt)].slice(0, n);
   const chosen = picked.length ? photos.filter((p) => picked.includes(p.id)) : null;
-  const calendarPhotos = chosen ?? auto(withCover ? 13 : 12);
   const contactPhotos = [...(chosen ?? photos)].sort((a, b) => (order === 'old' ? a.createdAt - b.createdAt : b.createdAt - a.createdAt));
 
   const run = async (make: () => Promise<Blob>, name: string, done: string) => {
@@ -61,15 +49,13 @@ export default function PrintProjects({ kind, photos, source, onClose, notify }:
     }
   };
   const go = () => {
-    if (kind === 'card' && cardPhoto)
-      return run(() => cardPdf(cardPhoto.blob, { size: cardSize, message, font, from }), 'delineate-card.pdf', 'Card ready — print double-sided, flipping on the short edge, at 100%.');
-    if (kind === 'calendar')
-      return run(() => calendarPdf(calendarPhotos, { year, startMonth, monday, paper, title, cover: withCover }), `delineate-calendar-${year}.pdf`, 'Calendar ready to print.');
     if (kind === 'contact') return run(() => contactSheetPdf(contactPhotos, { title, paper }), 'delineate-contact-sheet.pdf', 'Contact sheet ready to print.');
     return run(() => testPagePdf(paper), 'delineate-printer-test.pdf', 'Print it at 100% / actual size, then measure the 100 mm line.');
   };
-  const mm = Number(measured);
-  const validMm = mm >= 80 && mm <= 120;
+  const a = Number(across);
+  const b = Number(down);
+  const validA = a >= 80 && a <= 120;
+  const validB = b >= 80 && b <= 120;
 
   const paperSelect = (
     <label className="ps-field">
@@ -109,77 +95,6 @@ export default function PrintProjects({ kind, photos, source, onClose, notify }:
   return (
     <Modal title={meta.label} eyebrow="Studio › Frames › Print" onClose={onClose}>
       <div className="pj">
-        {kind === 'card' && (
-          <>
-            <div className="pj-card-photo">
-              {cardPhoto ? <Thumb photo={cardPhoto} className="pj-thumb" /> : <span className="pj-thumb" />}
-              <button type="button" className="button button-outline" onClick={() => setPicking(true)}>
-                <Images size={14} /> {cardPhoto ? 'Change photo' : 'Choose a photo'}
-              </button>
-              {picking && (
-                <PhotoPicker
-                  photos={photos}
-                  title="Photo for the front"
-                  onPick={(id) => {
-                    setCardPhoto(photos.find((p) => p.id === id) ?? null);
-                    setPicking(false);
-                  }}
-                  onClose={() => setPicking(false)}
-                />
-              )}
-            </div>
-            <div className="segmented pj-seg" role="radiogroup" aria-label="Card size">
-              {CARD_SIZES.map((c) => (
-                <button key={c.id} type="button" role="radio" aria-checked={cardSize === c.id} className={cardSize === c.id ? 'is-active' : ''} onClick={() => setCardSize(c.id)}>
-                  {c.label}
-                </button>
-              ))}
-            </div>
-            <textarea className="text-input pj-message" rows={4} maxLength={300} value={message} placeholder="Your message inside the card…" aria-label="Message" onChange={(e) => setMessage(e.target.value)} />
-            <div className="segmented pj-seg" role="radiogroup" aria-label="Message style">
-              {(['hand', 'serif'] as const).map((f) => (
-                <button key={f} type="button" role="radio" aria-checked={font === f} className={`${font === f ? 'is-active' : ''} is-${f}`} onClick={() => setFont(f)}>
-                  {f === 'hand' ? 'Handwritten' : 'Serif'}
-                </button>
-              ))}
-            </div>
-            <input className="text-input" value={from} maxLength={40} placeholder="From (optional), e.g. With love, Asha" aria-label="From" onChange={(e) => setFrom(e.target.value)} />
-            <small className="pr-hint">Two pages: the outside (photo on the front) and the inside (your message). Print double-sided, flip on the short edge, at 100%.</small>
-          </>
-        )}
-
-        {kind === 'calendar' && (
-          <>
-            <div className="pj-grid2">
-              <label className="ps-field">
-                <span>Year</span>
-                <input className="text-input" type="number" inputMode="numeric" min={2000} max={2100} value={year} onChange={(e) => setYear(Math.min(2100, Math.max(2000, Number(e.target.value) || year)))} />
-              </label>
-              <label className="ps-field">
-                <span>Starts in</span>
-                <select className="text-input" value={startMonth} onChange={(e) => setStartMonth(Number(e.target.value))}>
-                  {Array.from({ length: 12 }, (_, m) => (
-                    <option key={m} value={m}>
-                      {new Date(2024, m, 1).toLocaleDateString(undefined, { month: 'long' })}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div className="segmented pj-seg" role="radiogroup" aria-label="Week starts on">
-              {[true, false].map((mon) => (
-                <button key={String(mon)} type="button" role="radio" aria-checked={monday === mon} className={monday === mon ? 'is-active' : ''} onClick={() => setMonday(mon)}>
-                  Week starts {mon ? 'Monday' : 'Sunday'}
-                </button>
-              ))}
-            </div>
-            {paperSelect}
-            <Toggle checked={withCover} onChange={setWithCover} label="Cover page" />
-            {withCover && <input className="text-input" value={title} maxLength={40} placeholder={`Cover title (default: ${year})`} aria-label="Cover title" onChange={(e) => setTitle(e.target.value)} />}
-            {photoChoice(13, `Automatic: your favourites first, then the newest (${calendarPhotos.length})`)}
-          </>
-        )}
-
         {kind === 'contact' && (
           <>
             <input className="text-input" value={title} maxLength={40} placeholder="Title, e.g. Roll 03 · Goa" aria-label="Sheet title" onChange={(e) => setTitle(e.target.value)} />
@@ -198,41 +113,96 @@ export default function PrintProjects({ kind, photos, source, onClose, notify }:
 
         {kind === 'test' && (
           <>
-            <p className="modal-copy">Print the test page at 100% (“Actual size”, not “Fit to page”), measure the 100 mm line, and enter what you get. Prints and cards are then corrected for your printer.</p>
-            {paperSelect}
-            <div className="pj-measure">
-              <label className="ps-field">
-                <span>Measured length (mm)</span>
-                <input className="text-input" type="number" inputMode="decimal" step={0.5} min={80} max={120} value={measured} placeholder="100" onChange={(e) => setMeasured(e.target.value)} />
-              </label>
-              <button
-                type="button"
-                className="button button-outline"
-                disabled={!validMm}
-                onClick={() => {
-                  setPrintScale(mm);
-                  setScale(printScale());
-                  notify(`Saved: true-size prints will be scaled by ${((100 / mm - 1) * 100).toFixed(1)}%.`);
-                }}
-              >
-                Save correction
-              </button>
-            </div>
-            <small className="pr-hint">
-              {scale === 1 ? 'No correction yet.' : `Current correction: ${((scale - 1) * 100).toFixed(1)}%. `}
-              {scale !== 1 && (
+            <p className="modal-copy">
+              Home printers often print a little smaller or larger than true size, so a “4 × 6” print comes out 3.9 × 5.9. This page measures your printer once; after that,
+              print sheets and cards are scaled to cancel the difference.
+            </p>
+            <details className="pj-how">
+              <summary>How it works</summary>
+              <p>
+                The lines on the test page are drawn exactly 100 mm long. Your printer may print them a little shorter or longer — usually because of “Fit to page”, because it
+                can't print to the paper's edge and shrinks the page to fit, or because the rollers stretch the paper slightly as it feeds.
+              </p>
+              <p>
+                <b>A and B are what the lines actually measure on your paper.</b> They are measured separately because printers often differ across the page (the print head) and down it
+                (the paper feed).
+              </p>
+              <p>
+                The app then works out <b>100 ÷ your measurement</b> for each direction and draws every print that much larger or smaller, so your printer's shrink brings it back to the
+                exact size. For example, if A measures 98 mm, prints are drawn 2% wider — and come out true.
+              </p>
+              <p>Do it once per printer; the correction is kept on this device (and in backups). Always print at 100% afterwards — “Fit to page” changes the shrink again.</p>
+            </details>
+            <ol className="pj-steps">
+              <li>
+                <b>Download and print the test page</b> at 100% — “Actual size”, not “Fit to page”.
+                {paperSelect}
+                <button type="button" className="button button-outline" onClick={() => void go()} disabled={busy}>
+                  {busy ? <Spinner /> : <FileDown size={14} />} Download test page
+                </button>
+              </li>
+              <li>
+                <b>Measure lines A and B</b> with a ruler, from 0 to 10. On a true printer each is exactly 100 mm.
+              </li>
+              <li>
+                <b>Enter what you measured</b> and save.
+                <div className="pj-measure">
+                  {(
+                    [
+                      ['A · across (mm)', across, setAcross],
+                      ['B · down (mm)', down, setDown],
+                    ] as const
+                  ).map(([label, value, set]) => (
+                    <label key={label} className="ps-field">
+                      <span>{label}</span>
+                      <input className="text-input" type="number" inputMode="decimal" step={0.5} min={80} max={120} value={value} placeholder="100" onChange={(e) => set(e.target.value)} />
+                    </label>
+                  ))}
+                </div>
+                {validA && (
+                  <p className="pj-preview">
+                    {[
+                      ['Across', a],
+                      ['Down', down === '' ? a : b],
+                    ]
+                      .map(([name, mm]) => {
+                        const pct = (100 / Number(mm) - 1) * 100;
+                        return Math.abs(pct) < 0.05 ? `${name}: already true` : `${name}: prints drawn ${Math.abs(pct).toFixed(1)}% ${pct > 0 ? 'larger' : 'smaller'}`;
+                      })
+                      .join(' · ')}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  className="button button-dark"
+                  disabled={!validA || (down !== '' && !validB)}
+                  onClick={() => {
+                    setPrintScale(a, down === '' ? a : b);
+                    setScale(printScale());
+                    notify('Saved — print sheets and cards will now come out true to size on this printer.');
+                  }}
+                >
+                  Save correction
+                </button>
+              </li>
+            </ol>
+            <p className="pj-status">
+              {scale.x === 1 && scale.y === 1
+                ? 'No correction saved — prints use their exact sizes.'
+                : `Correction in use: ${scale.x >= 1 ? '+' : ''}${((scale.x - 1) * 100).toFixed(1)}% across, ${scale.y >= 1 ? '+' : ''}${((scale.y - 1) * 100).toFixed(1)}% down. `}
+              {(scale.x !== 1 || scale.y !== 1) && (
                 <button
                   type="button"
                   className="text-button"
                   onClick={() => {
                     setPrintScale(null);
-                    setScale(1);
+                    setScale(printScale());
                   }}
                 >
-                  Reset
+                  Remove correction
                 </button>
               )}
-            </small>
+            </p>
           </>
         )}
       </div>
@@ -240,9 +210,11 @@ export default function PrintProjects({ kind, photos, source, onClose, notify }:
         <button type="button" className="button button-outline" onClick={onClose}>
           Close
         </button>
-        <button type="button" className="button button-dark" onClick={() => void go()} disabled={busy || (kind === 'card' && !cardPhoto) || ((kind === 'calendar' || kind === 'contact') && !photos.length)}>
-          {busy ? <Spinner /> : <FileDown size={15} />} {busy ? 'Making…' : kind === 'test' ? 'Download test page' : 'Download PDF'}
-        </button>
+        {kind !== 'test' && (
+          <button type="button" className="button button-dark" onClick={() => void go()} disabled={busy || !photos.length}>
+            {busy ? <Spinner /> : <FileDown size={15} />} {busy ? 'Making…' : 'Download PDF'}
+          </button>
+        )}
       </div>
     </Modal>
   );

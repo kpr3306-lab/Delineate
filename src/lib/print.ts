@@ -23,6 +23,7 @@ export const PAPERS: Paper[] = [
   { id: 'a4', label: 'A4', w: 21 * CM, h: 29.7 * CM },
   { id: 'letter', label: 'US Letter', w: 8.5, h: 11 },
   { id: 'a3', label: 'A3', w: 29.7 * CM, h: 42 * CM },
+  { id: 'a5', label: 'A5', w: 14.8 * CM, h: 21 * CM },
   { id: 'p4x6', label: '4 × 6 photo paper', w: 4, h: 6 },
   { id: 'p5x7', label: '5 × 7 photo paper', w: 5, h: 7 },
 ];

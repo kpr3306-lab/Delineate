@@ -370,3 +370,116 @@
 .crash p { margin: 0; color: var(--ink-soft); line-height: 1.55; }
 .crash details { color: var(--muted); font-size: 11px; }
 .crash code { display: block; margin-top: 6px; white-space: pre-wrap; word-break: break-word; }
+
+/* ════ Studio › Frames › Greeting card ════════════════════════════════════════════════════════ */
+.cs-stage { display: grid; gap: 10px; align-content: start; }
+.cs-faces { display: flex; justify-self: center; }
+.cs-faces button { padding: 7px 18px; }
+.cs-canvas-wrap { display: grid; place-items: center; min-height: 0; padding: 14px; border-radius: 18px; background: repeating-linear-gradient(45deg, rgb(var(--ink-rgb) / 0.03) 0 10px, transparent 10px 20px), var(--paper-deep); }
+.cs-canvas { display: block; width: auto; height: min(62vh, 640px); max-width: 100%; border-radius: 3px; box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.12); touch-action: none; cursor: grab; }
+.cs-canvas:active { cursor: grabbing; }
+.cs-controls .pr-group { gap: 10px; }
+.cs-templates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.cs-tpl { display: grid; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 8px; color: var(--ink); text-align: left; border: 1px solid var(--line); border-radius: 12px; background: var(--card); cursor: pointer; }
+.cs-tpl i { grid-row: 1 / 3; width: 34px; height: 46px; border: 1px solid var(--line-strong); border-radius: 3px; background: #fbf8f1; }
+.cs-tpl.is-split i { background: linear-gradient(#9ab7c9 0 55%, #fbf8f1 55%) ; }
+.cs-tpl.is-fold i { background: linear-gradient(90deg, #fbf8f1 0 48%, #d8d0c2 48% 52%, #b98d6f 52%); }
+.cs-tpl.is-ornate i { background: radial-gradient(ellipse 30% 26% at 50% 50%, #fffaf0 90%, transparent 92%), radial-gradient(circle at 12% 12%, #c98a84 0 12%, transparent 13%), radial-gradient(circle at 88% 88%, #c98a84 0 12%, transparent 13%), #f3e7d2; }
+.cs-tpl.is-postcard i { background: linear-gradient(#f3eee2 0 26%, #d9a274 26% 62%, #7e9bb0 62%); }
+.cs-tpl.is-photo i { background: linear-gradient(transparent 60%, rgba(0, 0, 0, 0.5)), linear-gradient(135deg, #e0a37a, #5f7f99); }
+.cs-tpl b { font-size: 12px; font-weight: 600; }
+.cs-tpl small { color: var(--muted); font-size: 10px; line-height: 1.3; }
+.cs-tpl.is-active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.cs-seg { display: flex; flex-wrap: wrap; justify-self: stretch; }
+.cs-seg button { flex: 1 1 auto; justify-content: center; }
+.cs-fonts button { font-size: 12px; text-transform: none; letter-spacing: 0; }
+.cs-photo { display: flex; align-items: center; gap: 10px; }
+.cs-message { min-height: 70px; resize: vertical; }
+.cs-controls .text-input { font-size: 16px; } /* iOS doesn't zoom into it */
+.cs-swatches { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cs-swatches > span { min-width: 44px; color: var(--muted); font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+.cs-swatches button { width: 24px; height: 24px; padding: 0; border: 1px solid var(--line-strong); border-radius: 50%; cursor: pointer; }
+.cs-swatches button.is-auto { width: auto; padding: 0 9px; color: var(--ink-soft); border-radius: 999px; background: none; font-family: var(--mono); font-size: 9px; }
+.cs-swatches button.is-active { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent); }
+.cs-borders { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 6px; }
+.cs-border { display: grid; justify-items: center; gap: 4px; padding: 7px 4px; color: var(--ink-soft); border: 1px solid var(--line); border-radius: 10px; background: none; font-size: 10px; cursor: pointer; }
+.cs-border i { width: 30px; height: 38px; border-radius: 2px; background: #fbf8f1; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08); }
+.cs-border.is-line i { box-shadow: inset 0 0 0 3px #fbf8f1, inset 0 0 0 4px #6f5a46; }
+.cs-border.is-double i { box-shadow: inset 0 0 0 3px #fbf8f1, inset 0 0 0 4px #6f5a46, inset 0 0 0 6px #fbf8f1, inset 0 0 0 7px #6f5a46; }
+.cs-border.is-doodle i { background: radial-gradient(circle, #6f5a46 0 1px, transparent 1.5px) 0 0 / 6px 6px, #fbf8f1; box-shadow: inset 0 0 0 3px #fbf8f1, inset 0 0 0 4px #6f5a46; }
+.cs-border.is-floral i { background: radial-gradient(circle at 15% 15%, #c98a84 0 18%, transparent 19%), radial-gradient(circle at 85% 85%, #c98a84 0 18%, transparent 19%), radial-gradient(circle at 85% 15%, #8a9a6e 0 12%, transparent 13%), radial-gradient(circle at 15% 85%, #8a9a6e 0 12%, transparent 13%), #f3e7d2; }
+.cs-border.is-deco i { background: radial-gradient(circle at 0 0, transparent 30%, #9a7a3a 31% 34%, transparent 35%), radial-gradient(circle at 100% 100%, transparent 30%, #9a7a3a 31% 34%, transparent 35%), #fbf8f1; box-shadow: inset 0 0 0 3px #fbf8f1, inset 0 0 0 4px #9a7a3a; }
+.cs-border.is-scallop i { background: radial-gradient(circle at 50% 0, #6f5a46 0 1.5px, transparent 2px) 0 2px / 5px 5px repeat-x, #fbf8f1; }
+.cs-border.is-confetti i { background: radial-gradient(circle at 20% 20%, #f2a7b8 0 6%, transparent 7%), radial-gradient(circle at 80% 30%, #8fc6e8 0 6%, transparent 7%), radial-gradient(circle at 30% 80%, #f7d06b 0 6%, transparent 7%), radial-gradient(circle at 75% 78%, #a8d5a2 0 6%, transparent 7%), #fbf8f1; }
+.cs-border.is-washi i { background: linear-gradient(135deg, #f4b6c2 0 16%, transparent 16% 84%, #a9d8c8 84%), #fbf8f1; }
+.cs-border.is-stamp i { background: radial-gradient(circle, transparent 2px, #fbf8f1 2.5px) -2px -2px / 6px 6px; box-shadow: inset 0 0 0 4px rgba(0, 0, 0, 0.1); }
+.cs-border.is-active { color: var(--ink); border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.cs-selected { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--accent); border-radius: 12px; }
+.cs-remove { justify-self: start; display: inline-flex; align-items: center; gap: 5px; color: var(--danger, #b3362b); }
+.cs-emojis { display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 4px; }
+.cs-emojis button { height: 38px; padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--card); font-size: 20px; line-height: 1; cursor: pointer; }
+.cs-decos { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 4px; }
+.cs-decos button { display: grid; place-items: center; height: 46px; padding: 5px; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--card); cursor: pointer; }
+/* wide decorations (tape, labels) must fit the tile, not just its width */
+.cs-decos button img { display: block; width: 34px; height: 34px; max-width: none; object-fit: contain; }
+.cs-upload { justify-content: center; }
+@media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
+  .cs-canvas { height: calc(var(--app-h, 100dvh) * 0.4); }
+  .cs-stage { padding-bottom: 6px; }
+  .cs-templates { grid-template-columns: 1fr 1fr; }
+}
+
+/* the printer test page steps */
+.pj-steps { display: grid; gap: 12px; margin: 0; padding-left: 20px; }
+.pj-steps li { display: grid; gap: 7px; color: var(--ink-soft); font-size: 13px; line-height: 1.45; }
+.pj-steps li b { color: var(--ink); }
+.pj-steps .button { justify-self: start; }
+.pj-status { margin: 0; padding: 10px 12px; color: var(--ink-soft); border-radius: 10px; background: rgb(var(--paper-rgb) / 0.6); font-size: 12px; }
+
+/* the card canvas sits in a box the size of the canvas, so the sticker menu can be placed in card coordinates */
+.cs-canvas-box { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
+.cs-sticker-menu {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  line-height: normal;
+  border-radius: 14px;
+  background: #1c1a17;
+  box-shadow: 0 10px 26px -10px rgba(0, 0, 0, 0.6);
+  transform: translate(-50%, calc(-100% - 8px));
+  animation: pvIn 140ms ease both;
+}
+.cs-sticker-menu.is-below { transform: translate(-50%, 8px); }
+.cs-sticker-menu button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; color: #f3eee4; border: 0; border-radius: 9px; background: none; cursor: pointer; }
+.cs-sticker-menu button:hover { background: rgba(255, 255, 255, 0.12); }
+.cs-sticker-menu button.is-danger { color: #ff8a7a; }
+.cs-pan { display: grid; gap: 6px; }
+
+/* card preview on wide screens: fill the stage's own height, never the window's (it ran past the box) */
+@media (min-width: 861px) {
+  .cs-stage { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+  .cs-faces { align-self: center; }
+  /* flex (not grid) passes a definite height down, so the card can be sized from the box */
+  .cs-canvas-wrap { display: flex; flex: 1; align-items: center; justify-content: center; min-height: 0; }
+  .cs-canvas-box { height: 100%; max-height: 100%; }
+  .cs-canvas { height: 100%; max-height: 100%; }
+}
+
+/* printer test page: how it works, and what your numbers will do */
+.pj-how { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: rgb(var(--paper-rgb) / 0.5); }
+.pj-how summary { color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; }
+.pj-how p { margin: 8px 0 0; color: var(--ink-soft); font-size: 12.5px; line-height: 1.55; }
+.pj-preview { margin: 0; color: var(--accent-deep); font-family: var(--mono); font-size: 11px; }
+
+/* ════ Studio › Frames › Photo calendar ═══════════════════════════════════════════════════════ */
+/* page picker: 13 small tabs that wrap (never scroll sideways) */
+.cal-pages { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.cal-pages button { padding: 6px 2px; color: var(--ink-soft); border: 1px solid var(--line); border-radius: 9px; background: var(--card); font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; }
+.cal-pages button.is-active { color: var(--paper); border-color: var(--ink); background: var(--ink); }
+.cal-auto { display: inline-flex; align-items: center; gap: 6px; justify-self: start; }
+.cal-tpl.is-classic i { background: linear-gradient(#8fb0c6 0 50%, #fff 50% 60%, repeating-linear-gradient(90deg, #ddd 0 1px, transparent 1px 5px) 0 60% / 100% 40% no-repeat, #fff); }
+.cal-tpl.is-fullbleed i { background: linear-gradient(transparent 58%, rgba(255, 255, 255, 0.9) 58% 94%, transparent 94%), linear-gradient(135deg, #e0a37a, #5f7f99); }
+.cal-tpl.is-polaroid i { background: linear-gradient(#fff 0 0) 6px 4px / 22px 24px no-repeat, linear-gradient(#8fb0c6 0 0) 8px 6px / 18px 17px no-repeat, #f6f1e7; }
+.cal-tpl.is-minimal i { background: linear-gradient(#8fb0c6 0 0) 9px 6px / 16px 13px no-repeat, #fff; }
