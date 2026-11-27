@@ -158,7 +158,6 @@ export default function CameraView({ filmNumber, photos, undeveloped, onSave, no
   const streamRef = useRef<MediaStream | null>(null);
   const aliveRef = useRef(true);
   const tiltRef = useRef<0 | 90 | 270>(0); // how the phone is physically held, from gravity
-  const [tilt, setTilt] = useState<0 | 90 | 270>(0); // the same, for bodies that turn their controls
   const zoomTimer = useRef<number | undefined>(undefined);
   const focusTimer = useRef<number | undefined>(undefined);
   const osdTimer = useRef<number | undefined>(undefined);
@@ -344,7 +343,6 @@ export default function CameraView({ filmNumber, photos, undeveloped, onSave, no
       if (g?.x == null || g.y == null) return;
       if (Math.abs(g.x) > Math.abs(g.y) + 2) tiltRef.current = g.x > 0 ? 90 : 270;
       else if (Math.abs(g.y) > Math.abs(g.x) + 2) tiltRef.current = 0;
-      setTilt(tiltRef.current); // same value = no re-render
     };
     window.addEventListener('devicemotion', onMotion);
     return () => window.removeEventListener('devicemotion', onMotion);
@@ -1143,7 +1141,6 @@ export default function CameraView({ filmNumber, photos, undeveloped, onSave, no
     },
     hud,
     ratios,
-    tilt,
     setZoom: (z: number) => setZoom(Math.min(4, Math.max(1, +z.toFixed(2)))),
     setRatio: (r: AspectKey) => {
       const i = ratios.indexOf(r);

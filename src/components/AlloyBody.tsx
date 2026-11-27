@@ -278,7 +278,7 @@ export default function AlloyBody({ c }: { c: CamApi }) {
   );
 
   return (
-    <div className={`cb cb-alloy al-${finish} al-tilt-${c.tilt} ${c.on ? 'is-on' : ''} ${c.firing ? 'is-firing' : ''} ${blink ? 'is-blink' : ''} ${booting ? 'is-booting' : ''}`}>
+    <div className={`cb cb-alloy al-${finish} ${c.on ? 'is-on' : ''} ${c.firing ? 'is-firing' : ''} ${blink ? 'is-blink' : ''} ${booting ? 'is-booting' : ''}`}>
       <div className="al-body">
         <span className="al-brush" aria-hidden="true" />
         <span className="al-shine" aria-hidden="true" />

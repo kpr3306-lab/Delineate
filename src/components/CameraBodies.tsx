@@ -76,8 +76,6 @@ export type CamApi = {
   setRatio: (r: AspectKey) => void;
   /** Zoom straight to a value (1–4), for the Delineate zoom rotary. */
   setZoom: (z: number) => void;
-  /** How the phone is physically held: 0 upright, 90 top to the left, 270 top to the right. */
-  tilt: 0 | 90 | 270;
 };
 
 type BodyProps = { c: CamApi };
