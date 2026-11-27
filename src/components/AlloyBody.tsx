@@ -1,4 +1,4 @@
-import { Aperture, Camera, Maximize2, Minimize2, ChevronLeft, ChevronRight, Info, Monitor, RotateCcw, Settings2, SwitchCamera, Timer, Zap, ZapOff } from 'lucide-react';
+import { Aperture, Camera, Maximize2, Minimize2, Minus, Plus, ChevronLeft, ChevronRight, Info, Monitor, RotateCcw, Settings2, SwitchCamera, Timer, Zap, ZapOff } from 'lucide-react';
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { haptic, isHapticsOn, isSoundOn, playDial, playPowerSwitch, playServo, playStartup, setHapticsOn, setSoundOn } from '../lib/audio';
 import type { CamApi } from './CameraBodies';
@@ -499,11 +499,11 @@ export default function AlloyBody({ c }: { c: CamApi }) {
         </div>
 
         <div className="al-zoomslot">
-          <span className="al-zs-mark" aria-hidden="true">+</span>
+          <Plus className="al-zs-mark" aria-hidden="true" size="1em" strokeWidth={2.5} />
           <span className="al-pocket is-slot">
             <ZoomKnob zoom={c.zoom} onChange={c.setZoom} />
           </span>
-          <span className="al-zs-mark" aria-hidden="true">−</span>
+          <Minus className="al-zs-mark" aria-hidden="true" size="1em" strokeWidth={2.5} />
           <span className="al-zs-label" aria-hidden="true">ZOOM</span>
         </div>
         <div className="al-side">

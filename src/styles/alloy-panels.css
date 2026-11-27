@@ -4,8 +4,8 @@
 .cb-alloy { --cyan: #35e8ff; --cyan-soft: rgba(53, 232, 255, 0.45); }
 .al-zs-mark,
 .al-zs-label,
-.cb-alloy .al-flip { transition: color 400ms ease, text-shadow 400ms ease, box-shadow 400ms ease; }
-.cb-alloy.is-on .al-zs-mark { color: #b9fbff; text-shadow: 0 0 3px var(--cyan), 0 0 9px var(--cyan), 0 0 16px var(--cyan-soft); }
+.cb-alloy .al-flip { transition: color 400ms ease, text-shadow 400ms ease, filter 400ms ease, box-shadow 400ms ease; }
+.cb-alloy.is-on .al-zs-mark { color: #b9fbff; filter: drop-shadow(0 0 2px var(--cyan)) drop-shadow(0 0 6px var(--cyan)); }
 .cb-alloy.is-on .al-zs-label { color: rgba(185, 251, 255, 0.85); text-shadow: 0 0 4px var(--cyan), 0 0 10px var(--cyan-soft); }
 .cb-alloy.is-on .al-flip { color: #c9fcff; }
 .cb-alloy.is-on .al-flip svg { filter: drop-shadow(0 0 2px var(--cyan)) drop-shadow(0 0 5px var(--cyan)); }
