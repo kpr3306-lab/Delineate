@@ -58,7 +58,8 @@
   /* one column on phones (the laptop columns above must not reach here) */
   .al-body { grid-template-columns: minmax(0, 1fr); }
   .al-zoomslot { display: flex; }
-  .al-zoomslot > .al-zs-mark { margin: 0; }
+  /* :nth-child(n) matches the specificity of the upright :first-child / :nth-child(3) rules so this wins */
+  .al-zoomslot > .al-zs-mark:nth-child(n) { margin: 0; align-self: center; }
   .al-zoomslot .al-zoom { width: min(38cqw, 160px); height: 28px; border-radius: 14px; }
   .al-pocket.is-slot { border-radius: 17px; }
   .al-zoomslot .al-zoom-drum,

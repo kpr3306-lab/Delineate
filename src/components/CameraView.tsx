@@ -187,7 +187,7 @@ export default function CameraView({ filmNumber, photos, undeveloped, onSave, no
     };
   }, [skin]);
 
-  const manualOn = manual && isDc;
+  const manualOn = manual && (isDc || cam.layout === 'alloy');
   const bulb = manualOn && SHUTTER_S[shutter] === BULB;
   const aspect = ratios[Math.min(ratio, ratios.length - 1)];
   const mirror = facing === 'user';
