@@ -5,8 +5,8 @@ import { CAMERAS, COLLECTIONS, type CollectionId } from '../../lib/cameras';
 import { passportStats } from '../../lib/memories';
 import { pad } from '../../lib/utils';
 
-const INK: Record<CollectionId, string> = { digi: '#b8452c', mobile: '#2c5fa8', pocket: '#2f7d5b', film: '#8a4fb0', lab: '#b07d1e' };
-const SHAPE: Record<CollectionId, string> = { digi: 'round', mobile: 'rect', pocket: 'oval', film: 'round', lab: 'hex' };
+const INK: Record<CollectionId, string> = { delineate: '#c4552a', digi: '#b8452c', mobile: '#2c5fa8', pocket: '#2f7d5b', film: '#8a4fb0', lab: '#b07d1e' };
+const SHAPE: Record<CollectionId, string> = { delineate: 'hex', digi: 'round', mobile: 'rect', pocket: 'oval', film: 'round', lab: 'hex' };
 const short = (t: number) => new Date(t).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: '2-digit' }).toUpperCase();
 
 /** Camera Passport: a stamp for every body you have shot with, and the ones still waiting. */

@@ -235,3 +235,7 @@
 @media (max-width: 860px), (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
   .dc-full .dc-wheel-row.is-perched { margin-bottom: -10px; }
 }
+/* laptops: the Digi body starts just below the collection knob and the wheel (a small gap, no overlap); phones keep the perch */
+@media (min-width: 861px) and (not ((orientation: landscape) and (pointer: coarse) and (max-height: 500px))) {
+  .dc-full .dc-wheel-row.is-perched { margin-bottom: 8px; }
+}

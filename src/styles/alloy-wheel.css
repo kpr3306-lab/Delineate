@@ -1,0 +1,80 @@
+/* ════ ALLOY zoom wheel: centred on the shutter, shorter and broader, diamond-knurled ═══════════════ */
+
+/* three equal bands: + above, the wheel in the middle (the shutter's centre line), − below; the label rides beside */
+.al-zoomslot { display: grid; grid-template-rows: 1fr auto 1fr; justify-items: center; align-items: center; }
+.al-zoomslot > .al-zs-mark:first-child { grid-row: 1; align-self: end; margin-bottom: calc(var(--k) * 0.6); }
+.al-zoomslot > .al-pocket.is-slot { grid-row: 2; }
+.al-zoomslot > .al-zs-mark:nth-child(3) { grid-row: 3; align-self: start; margin-top: calc(var(--k) * 0.6); }
+.al-zoomslot > .al-zs-label { position: absolute; top: 50%; left: 50%; margin: 0; transform: translate(calc(var(--k) * 2.3), -50%) rotate(180deg); }
+
+/* shorter and broader */
+.al-zoomslot .al-zoom { width: calc(var(--k) * 3.1); height: calc(var(--k) * 11.5); border-radius: calc(var(--k) * 1.4); }
+.al-pocket.is-slot { padding: calc(var(--k) * 0.36); border-radius: calc(var(--k) * 1.75); }
+.al-body { grid-template-columns: minmax(0, 1fr) calc(var(--k) * 5.2) calc(var(--k) * 14); }
+
+/* diamond knurl: two fine cuts crossing at ±45°, each with a dark wall and a lit edge, rolling with the wheel */
+.al-zoomslot .al-zoom-drum {
+  inset: 3% 5%;
+  border-radius: calc(var(--k) * 1.1);
+  --m-hi: #f4f6f8;
+  --m-mid: #9aa0a6;
+  --m-lo: #2a2d31;
+  background:
+    /* the drum's round: dark where it turns away, a bright band across the middle */
+    linear-gradient(180deg, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.18) 22%, rgba(255, 255, 255, 0.3) 50%, rgba(0, 0, 0, 0.18) 78%, rgba(0, 0, 0, 0.92)),
+    /* key light from the left */
+    linear-gradient(90deg, rgba(255, 255, 255, 0.3), transparent 42%, rgba(0, 0, 0, 0.5)),
+    repeating-linear-gradient(45deg, transparent 0 3px, var(--m-lo) 3px 4px, var(--m-hi) 4px 5px),
+    repeating-linear-gradient(-45deg, transparent 0 3px, var(--m-lo) 3px 4px, var(--m-hi) 4px 5px),
+    linear-gradient(var(--m-mid), var(--m-mid));
+  background-position: 0 0, 0 0, 0 var(--roll), 0 var(--roll), 0 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+/* polished bevel rings at both ends of the drum */
+.al-zoomslot .al-zoom::before,
+.al-zoomslot .al-zoom::after {
+  content: '';
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  z-index: 1;
+  height: calc(var(--k) * 0.35);
+  border-radius: 2px;
+  background: linear-gradient(90deg, #6b7077, #f4f6f8 35%, #a4aab0 65%, #4a4f55);
+  pointer-events: none;
+}
+.al-zoomslot .al-zoom::before { top: 3%; }
+.al-zoomslot .al-zoom::after { bottom: 3%; }
+.al-graphite .al-zoomslot .al-zoom-drum { --m-hi: #9aa0a6; --m-mid: #3e4248; --m-lo: #111214; background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.2) 22%, rgba(255, 255, 255, 0.18) 50%, rgba(0, 0, 0, 0.2) 78%, rgba(0, 0, 0, 0.92)), linear-gradient(90deg, rgba(255, 255, 255, 0.2), transparent 42%, rgba(0, 0, 0, 0.55)), repeating-linear-gradient(45deg, transparent 0 3px, var(--m-lo) 3px 4px, var(--m-hi) 4px 5px), repeating-linear-gradient(-45deg, transparent 0 3px, var(--m-lo) 3px 4px, var(--m-hi) 4px 5px), linear-gradient(var(--m-mid), var(--m-mid)); }
+.al-gold .al-zoomslot .al-zoom-drum { --m-hi: #fbf0d6; --m-mid: #c4a46c; --m-lo: #5f4a2b; background-image: linear-gradient(180deg, rgba(40, 25, 5, 0.88), rgba(0, 0, 0, 0.15) 22%, rgba(255, 245, 220, 0.32) 50%, rgba(0, 0, 0, 0.15) 78%, rgba(40, 25, 5, 0.88)), linear-gradient(90deg, rgba(255, 255, 255, 0.3), transparent 42%, rgba(0, 0, 0, 0.45)), repeating-linear-gradient(45deg, transparent 0 3px, var(--m-lo) 3px 4px, var(--m-hi) 4px 5px), repeating-linear-gradient(-45deg, transparent 0 3px, var(--m-lo) 3px 4px, var(--m-hi) 4px 5px), linear-gradient(var(--m-mid), var(--m-mid)); }
+.al-gold .al-zoomslot .al-zoom::before,
+.al-gold .al-zoomslot .al-zoom::after { background: linear-gradient(90deg, #8a6d3e, #fbf0d6 35%, #c4a46c 65%, #5f4a2b); }
+.al-graphite .al-zoomslot .al-zoom::before,
+.al-graphite .al-zoomslot .al-zoom::after { background: linear-gradient(90deg, #2a2d31, #9aa0a6 35%, #4a4f55 65%, #17191c); }
+.al-zoomslot .al-zoom-index { z-index: 2; }
+
+/* ── upright phones: the wheel lies flat under the screen, so everything turns 90° ───────────── */
+@media (max-width: 760px) and (orientation: portrait), (max-width: 560px) {
+  /* one column on phones (the laptop columns above must not reach here) */
+  .al-body { grid-template-columns: minmax(0, 1fr); }
+  .al-zoomslot { display: flex; }
+  .al-zoomslot > .al-zs-mark { margin: 0; }
+  .al-zoomslot .al-zoom { width: min(38cqw, 160px); height: 28px; border-radius: 14px; }
+  .al-pocket.is-slot { border-radius: 17px; }
+  .al-zoomslot .al-zoom-drum,
+  .al-graphite .al-zoomslot .al-zoom-drum,
+  .al-gold .al-zoomslot .al-zoom-drum { inset: 6% 3%; border-radius: 12px; background-position: 0 0, 0 0, var(--roll) 0, var(--roll) 0, 0 0; }
+  .al-zoomslot .al-zoom-drum { background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.18) 20%, rgba(255, 255, 255, 0.3) 50%, rgba(0, 0, 0, 0.18) 80%, rgba(0, 0, 0, 0.92)), linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent 42%, rgba(0, 0, 0, 0.5)), repeating-linear-gradient(45deg, transparent 0 3px, var(--m-lo) 3px 4px, var(--m-hi) 4px 5px), repeating-linear-gradient(-45deg, transparent 0 3px, var(--m-lo) 3px 4px, var(--m-hi) 4px 5px), linear-gradient(var(--m-mid), var(--m-mid)); }
+  .al-graphite .al-zoomslot .al-zoom-drum { background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.2) 20%, rgba(255, 255, 255, 0.18) 50%, rgba(0, 0, 0, 0.2) 80%, rgba(0, 0, 0, 0.92)), linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 42%, rgba(0, 0, 0, 0.55)), repeating-linear-gradient(45deg, transparent 0 3px, var(--m-lo) 3px 4px, var(--m-hi) 4px 5px), repeating-linear-gradient(-45deg, transparent 0 3px, var(--m-lo) 3px 4px, var(--m-hi) 4px 5px), linear-gradient(var(--m-mid), var(--m-mid)); }
+  .al-gold .al-zoomslot .al-zoom-drum { background-image: linear-gradient(90deg, rgba(40, 25, 5, 0.88), rgba(0, 0, 0, 0.15) 20%, rgba(255, 245, 220, 0.32) 50%, rgba(0, 0, 0, 0.15) 80%, rgba(40, 25, 5, 0.88)), linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent 42%, rgba(0, 0, 0, 0.45)), repeating-linear-gradient(45deg, transparent 0 3px, var(--m-lo) 3px 4px, var(--m-hi) 4px 5px), repeating-linear-gradient(-45deg, transparent 0 3px, var(--m-lo) 3px 4px, var(--m-hi) 4px 5px), linear-gradient(var(--m-mid), var(--m-mid)); }
+  /* bevel rings at the two ends, now left and right */
+  .al-zoomslot .al-zoom::before,
+  .al-zoomslot .al-zoom::after { top: 6%; bottom: 6%; left: auto; right: auto; width: 3px; height: auto; background: linear-gradient(180deg, #6b7077, #f4f6f8 35%, #a4aab0 65%, #4a4f55); }
+  .al-zoomslot .al-zoom::before { left: 3%; }
+  .al-zoomslot .al-zoom::after { right: 3%; }
+}
+/* laptops: rolling down zooms in, so − is engraved above the wheel and + below */
+@media (min-width: 761px) {
+  .al-zoomslot > .al-zs-mark:first-child { grid-row: 3; align-self: start; margin: calc(var(--k) * 0.6) 0 0; }
+  .al-zoomslot > .al-zs-mark:nth-child(3) { grid-row: 1; align-self: end; margin: 0 0 calc(var(--k) * 0.6); }
+}

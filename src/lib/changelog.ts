@@ -59,6 +59,12 @@ export const CHANGELOG: Release[] = [
       {
         name: 'Camera & app',
         items: [
+          'Delineate camera controls, refined: the PRO dial has a chrome bezel with a warm glow, a turning tick scale and lit markers; the EV control is a ruler with a brushed-metal knob whose ticks glow around it; a zoom thumbwheel in the body between the screen and the shutter (roll it up or down; double-tap for 1×); the power switch centred between the selfie flip and the shutter; milled grooves on both right-hand corners; more room between the power switch and selfie flip.',
+          'Delineate camera: once powered up, the selfie flip and the zoom wheel light in neon cyan; turning the phone sideways moves the top ribbon to the edge that is now on top, with its icons upright; settings open as a sheet over a third of the screen on phones (a side panel on laptops) and the expert dials as a compact sheet, so the viewfinder stays in view.',
+          'Digi cameras on laptops now sit just below the collection dial instead of touching it.',
+          'Fix: the shutter ring and power lamp now always go back from green to their normal colour after a photo.',
+          'Delineate camera: every control now sits in its own milled pocket with a real gap; a two-part rocker power switch that glows when on; a fluted sunburst shutter with the light ring in its gap; the Delineate signature engraved on the shoulder; deeper light and shadow on all three finishes. New full-view button (⤢) hides the app around the camera — tap it again or press back to leave.',
+          'New default camera — Delineate ALLOY 01 in Silver, Graphite and Gold: brushed, machined body; a light ring round the shutter that flashes green with the power lamp at every shot; the Delineate mark opens your photos; an EV slider and aspect-ratio shortcut in the top ribbon; PRO expert dials for ISO, shutter and aperture; a settings panel that unfolds from the gear; and a start-up where the logo spins a full turn as the iris opens.',
           'Each Pocket Digital body wears its own finish: silver, cobalt, rose copper, crimson, ice teal, cream, piano black and sage.',
           'The camera description lives in a small ⓘ button; the Digi body wheel perches on the camera\'s top edge; the Digi shutter stays round on small phones.',
           'New Retro Future theme: indigo night, sunset magenta and neon cyan.',

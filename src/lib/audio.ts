@@ -320,3 +320,32 @@ export const playFlip = () =>
 
 export const playFlashCharge = () =>
   play((ctx) => tone(ctx, 1800, 0.6, 0.015, 'sine', 0, 6000));
+
+/* ── Delineate (Alloy) body: a restrained, machined sound palette ─────────────────────────── */
+/** Power switch: a low mechanical click and a soft wake tone (rising on, falling off). */
+export const playPowerSwitch = (on: boolean) =>
+  play((ctx) => {
+    noise(ctx, 0.05, 0.22, 'lowpass', 900);
+    tone(ctx, 140, 0.05, 0.06, 'square');
+    tone(ctx, on ? 440 : 520, 0.22, 0.04, 'sine', 0.05, on ? 660 : 300);
+  });
+/** Startup: a soft rising sweep while the logo spins up, then a settling chime. */
+export const playStartup = () =>
+  play((ctx) => {
+    tone(ctx, 180, 0.9, 0.035, 'sine', 0.05, 720);
+    tone(ctx, 360, 0.9, 0.018, 'triangle', 0.08, 1440);
+    tone(ctx, 988, 0.35, 0.03, 'sine', 0.95);
+    tone(ctx, 1319, 0.45, 0.02, 'sine', 1.02);
+  });
+/** Settings gear: a quiet metal micro-click and a short servo whirr. */
+export const playServo = (open: boolean) =>
+  play((ctx) => {
+    noise(ctx, 0.03, 0.12, 'highpass', 4200);
+    tone(ctx, open ? 260 : 340, 0.16, 0.025, 'sawtooth', 0.02, open ? 340 : 260);
+  });
+/** One detent of a machined dial: a crisp, very short tick. */
+export const playDial = () =>
+  play((ctx) => {
+    noise(ctx, 0.012, 0.16, 'highpass', 5200);
+    tone(ctx, 2600, 0.018, 0.02, 'square');
+  });

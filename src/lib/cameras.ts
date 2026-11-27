@@ -7,8 +7,8 @@ import { miniDv } from './fx';
 /* The camera collection: every model is a body layout + a voice + a look that is live in the viewfinder
    and baked into the saved frame. Models are creative modes inspired by real devices, not emulations. */
 
-export type CollectionId = 'digi' | 'mobile' | 'pocket' | 'film' | 'lab';
-export type Layout = 'dc' | 'phone' | 'touch' | 'compact' | 'film' | 'video' | 'handheld' | 'webcam';
+export type CollectionId = 'delineate' | 'digi' | 'mobile' | 'pocket' | 'film' | 'lab';
+export type Layout = 'alloy' | 'dc' | 'phone' | 'touch' | 'compact' | 'film' | 'video' | 'handheld' | 'webcam';
 /** Pixel-level character the CSS look can't express; previews run through a canvas when a model has one. */
 export type Pass = 'lowres' | 'gb' | 'jpeg' | 'vhs' | 'dv' | 'dream';
 export type Fx = 'iris' | 'blink' | 'eject' | 'process' | 'curtain' | 'fade';
@@ -48,6 +48,7 @@ export type CamModel = {
 };
 
 export const COLLECTIONS: { id: CollectionId; name: string; short: string; note: string }[] = [
+  { id: 'delineate', short: 'Delineate', name: 'Delineate', note: 'The house camera: machined aluminium, in three finishes' },
   { id: 'digi', short: 'Digi', name: 'Digi Cam', note: 'The original six bodies' },
   { id: 'mobile', short: 'Mobile', name: 'Retro Mobile', note: 'Camera phones, 2003–2009' },
   { id: 'pocket', short: 'Pocket', name: 'Pocket Digital', note: 'CCD compacts of the 2000s' },
@@ -58,6 +59,13 @@ export const COLLECTIONS: { id: CollectionId; name: string; short: string; note:
 const SNAP: AspectKey[] = ['3:2', '2:3'];
 
 export const CAMERAS: CamModel[] = [
+  // Delineate — the house camera (alloy layout): one machined body in three finishes, each with its own details.
+  { id: 'alloy-silver', collection: 'delineate', name: 'Silver', model: 'ALLOY 01', tag: 'Precision. Clarity.', inspired: 'Delineate’s own camera, in satin-brushed aluminium', layout: 'alloy', voice: 'compact', key: 'click', fx: 'iris', buzz: [12, 24, 8], boot: 'Delineate', bootSub: 'ALLOY 01',
+    look: { contrast: 1.04, saturation: 1.02 } },
+  { id: 'alloy-graphite', collection: 'delineate', name: 'Graphite', model: 'ALLOY 01 · G', tag: 'Quiet. Low-key.', inspired: 'Delineate’s own camera, in dark anodised graphite', layout: 'alloy', voice: 'compact', key: 'click', fx: 'iris', buzz: [12, 24, 8], boot: 'Delineate', bootSub: 'ALLOY 01 · GRAPHITE',
+    look: { contrast: 1.1, saturation: 0.94, warmth: -4, vignette: 0.12 } },
+  { id: 'alloy-gold', collection: 'delineate', name: 'Gold', model: 'ALLOY 01 · AU', tag: 'Warm. Golden hour.', inspired: 'Delineate’s own camera, in champagne gold', layout: 'alloy', voice: 'compact', key: 'click', fx: 'iris', buzz: [12, 24, 8], boot: 'Delineate', bootSub: 'ALLOY 01 · GOLD',
+    look: { warmth: 10, saturation: 1.06, contrast: 1.03, fade: 0.04 } },
   // Digi Cam — the original bodies (dc layout), each now with a gentle signature look.
   { id: 'classic', collection: 'digi', name: 'Classic Film', model: 'F-1', tag: 'Timeless. Film-like.', inspired: 'A 1970s SLR', layout: 'dc', voice: 'mech', key: 'click', fx: 'iris', buzz: [18, 30, 12], boot: 'Delineate', bootSub: 'F-1 · LOADING FILM',
     look: { warmth: 8, contrast: 1.05, saturation: 0.95, grain: 10, fade: 0.05 } },

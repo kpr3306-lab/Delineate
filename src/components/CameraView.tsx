@@ -105,9 +105,9 @@ export function makeAccumulator(width: number, height: number, mode: 'avg' | 'tr
 export default function CameraView({ filmNumber, photos, undeveloped, onSave, notify, onOpenDevelop, onNavigate }: CameraViewProps) {
   const [skin, setSkin] = useState<string>(() => {
     try {
-      return getCamera(window.localStorage.getItem(SKIN_KEY) || 'classic').id;
+      return getCamera(window.localStorage.getItem(SKIN_KEY) || 'alloy-silver').id;
     } catch {
-      return 'classic';
+      return 'alloy-silver';
     }
   });
   const cam = getCamera(skin);
@@ -158,6 +158,7 @@ export default function CameraView({ filmNumber, photos, undeveloped, onSave, no
   const streamRef = useRef<MediaStream | null>(null);
   const aliveRef = useRef(true);
   const tiltRef = useRef<0 | 90 | 270>(0); // how the phone is physically held, from gravity
+  const [tilt, setTilt] = useState<0 | 90 | 270>(0); // the same, for bodies that turn their controls
   const zoomTimer = useRef<number | undefined>(undefined);
   const focusTimer = useRef<number | undefined>(undefined);
   const osdTimer = useRef<number | undefined>(undefined);
@@ -343,6 +344,7 @@ export default function CameraView({ filmNumber, photos, undeveloped, onSave, no
       if (g?.x == null || g.y == null) return;
       if (Math.abs(g.x) > Math.abs(g.y) + 2) tiltRef.current = g.x > 0 ? 90 : 270;
       else if (Math.abs(g.y) > Math.abs(g.x) + 2) tiltRef.current = 0;
+      setTilt(tiltRef.current); // same value = no re-render
     };
     window.addEventListener('devicemotion', onMotion);
     return () => window.removeEventListener('devicemotion', onMotion);
@@ -1120,6 +1122,35 @@ export default function CameraView({ filmNumber, photos, undeveloped, onSave, no
     closeOverlays: () => {
       if (menuOpen) closeMenu();
       else setReview(false);
+    },
+    status,
+    expert: {
+      manual,
+      setManual: (on: boolean) => {
+        setManual(on);
+        flashOsd(on ? 'Manual' : 'Auto');
+      },
+      iso,
+      shutter,
+      aperture,
+      set: (key: 'iso' | 'shutter' | 'aperture', i: number) => {
+        if (key === 'iso') setIso(clamp(i, 0, ISO.length - 1));
+        else if (key === 'shutter') setShutter(clamp(i, 0, SHUTTER.length - 1));
+        else setAperture(clamp(i, 0, APERTURE.length - 1));
+        if (!manual) setManual(true); // turning an exposure dial means you want manual
+      },
+      lists: { iso: ISO.map(String), shutter: SHUTTER, aperture: APERTURE.map((a) => `f/${a}`), ev: EV },
+    },
+    hud,
+    ratios,
+    tilt,
+    setZoom: (z: number) => setZoom(Math.min(4, Math.max(1, +z.toFixed(2)))),
+    setRatio: (r: AspectKey) => {
+      const i = ratios.indexOf(r);
+      if (i >= 0) {
+        setRatio(i);
+        flashOsd(r);
+      }
     },
   };
 

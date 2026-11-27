@@ -1,4 +1,5 @@
 import { Camera, ChevronLeft, ChevronRight, Grid3X3, Images, Menu, Minus, Phone, PhoneOff, Plus, Power, SwitchCamera, Zap, ZapOff } from 'lucide-react';
+import AlloyBody from './AlloyBody';
 import { type ComponentType, type HTMLAttributes, type ReactNode } from 'react';
 import type { AspectKey, PhotoRecord } from '../types';
 import type { CamModel, Layout } from '../lib/cameras';
@@ -58,6 +59,25 @@ export type CamApi = {
   windOn: () => void;
   key: (k?: string) => void;
   closeOverlays: () => void;
+  /** Power state in detail: 'starting' is the boot moment. */
+  status: string;
+  /** Manual exposure (Delineate's expert dials): indices into the value lists, AUTO when manual is off. */
+  expert: {
+    manual: boolean;
+    setManual: (on: boolean) => void;
+    iso: number;
+    shutter: number;
+    aperture: number;
+    set: (key: 'iso' | 'shutter' | 'aperture', index: number) => void;
+    lists: { iso: string[]; shutter: string[]; aperture: string[]; ev: number[] };
+  };
+  hud: boolean;
+  ratios: AspectKey[];
+  setRatio: (r: AspectKey) => void;
+  /** Zoom straight to a value (1–4), for the Delineate zoom rotary. */
+  setZoom: (z: number) => void;
+  /** How the phone is physically held: 0 upright, 90 top to the left, 270 top to the right. */
+  tilt: 0 | 90 | 270;
 };
 
 type BodyProps = { c: CamApi };
@@ -646,6 +666,7 @@ function WebcamBody({ c }: BodyProps) {
 }
 
 export const BODIES: Partial<Record<Layout, ComponentType<BodyProps>>> = {
+  alloy: AlloyBody,
   phone: PhoneBody,
   touch: TouchBody,
   compact: CompactBody,

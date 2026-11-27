@@ -178,6 +178,41 @@ Self-checks: `node scripts/print.check.ts`, `node scripts/crop.check.ts`, `node 
 
 All self-checks: `node scripts/print.check.ts`, `node scripts/crop.check.ts`, `node scripts/exif.check.ts`, `node scripts/dupes.check.ts`, `node scripts/backup.check.ts`.
 
+
+---
+
+## What's new (1.5)
+
+### The Delineate camera — ALLOY 01
+
+![Delineate ALLOY 01 camera](docs/screenshots/delineate-camera.png)
+
+The house camera and the new default, in **Silver**, **Graphite** and **Gold**. A machined body: brushed metal with directional grain, polished chamfers, milled grooves, and every control in its own counterbore with a real gap around it.
+
+- **Shutter** centred on the right: a fluted sunburst skirt and a brushed cap, with a **light ring** in its gap that glows in the body's colour and flashes **green** with the power lamp at every shot.
+- **Power** — a two-part rocker with engraved ON / OFF, centred between the selfie flip and the shutter: lit orange while on, dark when off. **Selfie flip** above it; the **Delineate mark** below the shutter opens your photos (swipe or tap ‹ › to browse).
+- **Top ribbon** — EV, aspect ratio, PRO, flash, timer, **full view** (⤢ hides the app around the camera; tap again or press Android back to leave) and the settings gear.
+- **Zoom thumbwheel** — a knurled wheel in its own milled slot between the screen and the shutter: roll it up to zoom in, down to zoom out (on phones it lies flat under the screen and rolls sideways). Double-tap for 1×.
+- **Bottom bar** — AUTO/M, an **EV ruler** with a brushed-metal knob and ticks that glow around it, the zoom, EV and ratio.
+- **PRO** — expert dials for ISO, shutter and aperture: a chrome bezel with a warm glow, a turning tick scale and lit markers. Turn, drag or use − / +.
+- **Settings** unfold from the gear: Camera, Display, Capture, General, About.
+- **Start-up** — a light traces the body's edge and the Delineate mark spins a full turn as an iris opens. Clicks, detents and haptics throughout (all optional).
+- Each finish has its own corners, shutter, light colour and photo look. On phones the body stands upright with the controls in a row below the screen.
+
+<p align="center">
+  <img src="docs/screenshots/delineate-phone.png" alt="Delineate camera on a phone" width="300" />
+</p>
+
+### Greeting cards and calendars
+
+- **Greeting card editor** (Studio › Frames › More to print) — A5 or A6; five templates (Photo + words, Folded, Ornate, Postcard, Full photo); ten borders (doodle, floral, art deco, scallop, confetti, washi tape, postage stamp…); heading, message and sign-off in five fonts; paper and ink colours; drag the photo to position it and zoom it; stickers — emojis, decorations or your own image — with a menu on each sticker (size, turn, duplicate, bring forward, delete). Print-ready PDF (double-sided for folded cards), save or share the front.
+- **Photo calendar editor** — four layouts (Classic, Full photo, Polaroid, Minimal), boxed, clean or circled dates, month names in serif, script or sans, an accent colour, A4 / A5 / Letter / A3, and a photo per month that you drag and zoom into place.
+- **Printer test page** — numbered 100 mm rulers across and down. Print at 100%, measure, enter the two lengths: print sheets and cards are then corrected for your printer so they come out true to size. A *How it works* panel explains it in the app.
+
+### Everywhere
+
+- Tested at phone sizes from 360 × 780 to 430 × 932 and laptops from 1280 × 800 to 1920 × 1080: no sideways scrolling and no overlapping controls.
+
 ---
 
 ## Android app (APK)

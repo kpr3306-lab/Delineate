@@ -1,0 +1,102 @@
+/* ════ ALLOY: the zoom thumbwheel in the body, the power switch centred and turned ═════════════════ */
+
+/* the screen gives up a little width for a slot between it and the controls */
+.al-body { grid-template-columns: minmax(0, 1fr) calc(var(--k) * 4.6) calc(var(--k) * 14); gap: calc(var(--k) * 0.9); }
+.al-display { grid-column: 1; }
+.al-zoomslot { grid-column: 2; }
+.al-side { grid-column: 3; }
+
+.al-zoomslot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--k) * 0.5);
+  min-height: 0;
+}
+/* engraved + / − and a vertical ZOOM: dark cut, light lower lip */
+.al-zs-mark,
+.al-zs-label { color: rgba(0, 0, 0, 0.42); text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55); font-family: var(--sans); line-height: 1; }
+.al-zs-mark { font-size: calc(var(--k) * 1.3); font-weight: 600; }
+.al-zs-label { margin-top: calc(var(--k) * 0.4); font-size: calc(var(--k) * 0.72); letter-spacing: 0.24em; writing-mode: vertical-rl; transform: rotate(180deg); }
+.al-graphite .al-zs-mark,
+.al-graphite .al-zs-label { color: rgba(255, 255, 255, 0.3); text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6); }
+
+/* the slot: a long milled pocket the wheel turns in */
+.al-pocket.is-slot {
+  padding: calc(var(--k) * 0.32);
+  border-radius: calc(var(--k) * 1.5);
+  background: linear-gradient(90deg, #08080a, #18191c 50%, #08080a);
+}
+/* the wheel, upright: its axle runs across the body, so it rolls up and down */
+.al-zoomslot .al-zoom {
+  width: calc(var(--k) * 2.5);
+  height: calc(var(--k) * 15);
+  border-radius: calc(var(--k) * 1.2);
+  box-shadow: inset 0 0 calc(var(--k) * 0.3) rgba(0, 0, 0, 0.9);
+  cursor: ns-resize;
+}
+.al-zoomslot .al-zoom-drum {
+  inset: 3% 6%;
+  border-radius: calc(var(--k) * 1);
+  background:
+    /* the drum's round: dark where it turns away at the top and bottom, a bright band across the middle */
+    linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.2) 20%, rgba(255, 255, 255, 0.38) 50%, rgba(0, 0, 0, 0.2) 80%, rgba(0, 0, 0, 0.9)),
+    /* key light from the left, falling off to the right */
+    linear-gradient(90deg, rgba(255, 255, 255, 0.28), transparent 45%, rgba(0, 0, 0, 0.45)),
+    /* knurled ridges that travel as it rolls */
+    repeating-linear-gradient(180deg, #2a2d31 0 2px, #eceef0 2px 3px, #8e949a 3px 5px, #3a3e44 5px 6px);
+  background-position: 0 0, 0 0, 0 var(--roll);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+.al-graphite .al-zoomslot .al-zoom-drum { background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.25) 20%, rgba(255, 255, 255, 0.22) 50%, rgba(0, 0, 0, 0.25) 80%, rgba(0, 0, 0, 0.9)), linear-gradient(90deg, rgba(255, 255, 255, 0.18), transparent 45%, rgba(0, 0, 0, 0.5)), repeating-linear-gradient(180deg, #17191c 0 2px, #8a9097 2px 3px, #44484e 3px 5px, #222428 5px 6px); }
+.al-gold .al-zoomslot .al-zoom-drum { background-image: linear-gradient(180deg, rgba(40, 25, 5, 0.85), rgba(0, 0, 0, 0.15) 20%, rgba(255, 245, 220, 0.4) 50%, rgba(0, 0, 0, 0.15) 80%, rgba(40, 25, 5, 0.85)), linear-gradient(90deg, rgba(255, 255, 255, 0.3), transparent 45%, rgba(0, 0, 0, 0.4)), repeating-linear-gradient(180deg, #5f4a2b 0 2px, #fbf0d6 2px 3px, #c4a46c 3px 5px, #7a5f38 5px 6px); }
+/* the lit index across the wheel's middle */
+.al-zoomslot .al-zoom-index { top: 50%; bottom: auto; left: 8%; right: 8%; width: auto; height: 2px; transform: translateY(-50%); }
+
+/* the zoom value stays on screen in the bar */
+.al-strip .al-zoom { display: none; }
+
+/* ── the power switch: centred between the selfie flip and the shutter, turned 180° ──────────── */
+/* flip sits at the top of the column's upper half; the switch fills the rest of it and centres in it */
+.al-side > .al-pk-flip { align-self: start; margin-top: calc(var(--k) * 0.9); }
+.al-side > .al-pk-power {
+  align-self: stretch;
+  align-items: center;
+  margin: 0;
+  /* the flip pocket's top margin + height: what is left below it is split evenly round the switch */
+  padding-top: calc(var(--k) * (0.9 + 4.14));
+}
+.cb-alloy .al-power { transform: rotate(180deg); }
+
+/* ── upright phones: the wheel lies flat between the screen and the row of controls ─────────── */
+@media (max-width: 760px) and (orientation: portrait), (max-width: 560px) {
+  .al-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; gap: calc(var(--k) * 0.6); }
+  .al-display,
+  .al-zoomslot,
+  .al-side { grid-column: 1; }
+  .al-display { grid-row: 1; }
+  .al-zoomslot { grid-row: 2; flex-direction: row-reverse; gap: 10px; }
+  .al-side { grid-row: 3; }
+  .al-zs-label { display: none; }
+  .al-zoomslot .al-zoom { width: min(46cqw, 190px); height: 22px; cursor: ew-resize; }
+  .al-zoomslot .al-zoom-drum {
+    inset: 8% 2%;
+    background-image:
+      linear-gradient(90deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.2) 18%, rgba(255, 255, 255, 0.38) 50%, rgba(0, 0, 0, 0.2) 82%, rgba(0, 0, 0, 0.9)),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 45%, rgba(0, 0, 0, 0.45)),
+      repeating-linear-gradient(90deg, #2a2d31 0 2px, #eceef0 2px 3px, #8e949a 3px 5px, #3a3e44 5px 6px);
+    background-position: 0 0, 0 0, var(--roll) 0;
+  }
+  .al-graphite .al-zoomslot .al-zoom-drum { background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.25) 18%, rgba(255, 255, 255, 0.22) 50%, rgba(0, 0, 0, 0.25) 82%, rgba(0, 0, 0, 0.9)), linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 45%, rgba(0, 0, 0, 0.5)), repeating-linear-gradient(90deg, #17191c 0 2px, #8a9097 2px 3px, #44484e 3px 5px, #222428 5px 6px); }
+  .al-gold .al-zoomslot .al-zoom-drum { background-image: linear-gradient(90deg, rgba(40, 25, 5, 0.85), rgba(0, 0, 0, 0.15) 18%, rgba(255, 245, 220, 0.4) 50%, rgba(0, 0, 0, 0.15) 82%, rgba(40, 25, 5, 0.85)), linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent 45%, rgba(0, 0, 0, 0.4)), repeating-linear-gradient(90deg, #5f4a2b 0 2px, #fbf0d6 2px 3px, #c4a46c 3px 5px, #7a5f38 5px 6px); }
+  .al-zoomslot .al-zoom-index { top: 8%; bottom: 8%; left: 50%; right: auto; width: 2px; height: auto; transform: translateX(-50%); }
+  .al-pocket.is-slot { border-radius: 13px; background: linear-gradient(180deg, #08080a, #18191c 50%, #08080a); }
+  /* the switch: centred between the flip button and the shutter along the row */
+  .al-side > .al-pk-flip,
+  .al-gold .al-side > .al-pk-flip { align-self: center; justify-self: start; margin: 0; }
+  .al-side > .al-pk-power,
+  .al-gold .al-side > .al-pk-power { align-self: center; justify-self: stretch; justify-content: center; padding: 0 0 0 calc(var(--k) * 4.14); margin: 0; }
+}
