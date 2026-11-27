@@ -494,6 +494,9 @@ button.al-pill { cursor: pointer; }
 /* ── upright phones: the display on top, the controls in a row underneath ───────────────────── */
 @media (max-width: 760px) and (orientation: portrait), (max-width: 560px) {
   .cb.cb-alloy { --k: 2.35cqw; }
+  /* the chamfers must stay shallower than the 1.4k padding, or they slice the display's corners */
+  .cb.cb-alloy,
+  .cb-alloy.al-graphite { --cut-l: calc(var(--k) * 1.6); --cut-r: calc(var(--k) * 1.6); }
   .al-body {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr) auto;
